@@ -15,8 +15,8 @@ MSG_HEARTBEAT = 3
 
 # Create UDP socket
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-server_socket.bind(("0.0.0.0", 5005))
-print("Server listening on port 5005...")
+server_socket.bind(("0.0.0.0", 9999))
+print("Server waiting for readings in port 9999...")
 
 # Track device info
 device_last_seq = {}
