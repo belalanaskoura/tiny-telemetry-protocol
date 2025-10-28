@@ -12,7 +12,7 @@ MSG_HEARTBEAT = 3
 SERVER_IP = "127.0.0.1"   # change to server IP if needed
 SERVER_PORT = 5005
 DEVICE_ID = 1
-INTERVAL = 1      # seconds
+INTERVAL = 5  # seconds
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 seq_num = 0
