@@ -23,28 +23,30 @@ device_last_seq = {}
 
 # Prepare CSV file
 file = open("sensor_data.csv", "w", newline="")
-writer = csv.writer(file)
-writer.writerow(["device_id", "seq", "timestamp", "arrival_time", "duplicate_flag", "gap_flag", "data_value"])
+csv_writer = csv.writer(file)
+csv_writer.writerow(["device_id", "seq", "timestamp", "arrival_time", "duplicate_flag", "gap_flag", "data_value"])
 
 while True:
     data, addr = server_socket.recvfrom(1024)
     arrival_time = time.time()
 
-    if len(data) < HEADER_SIZE:
-        continue  # ignore invalid packet
-
     # Parse header
     seq, device_id, msg_type, timestamp, batch_flag, checksum, version = struct.unpack(
         HEADER_FORMAT, data[:HEADER_SIZE]
     )
-    payload = data[HEADER_SIZE:].decode("utf-8") if len(data) > HEADER_SIZE else ""
+
+   
+if len(data) > HEADER_SIZE:
+    payload_bytes = data[HEADER_SIZE:] # Extracts all bytes after the header
+    payload = paylaod_bytes.decode("utf-8")
+
 
     duplicate_flag = 0
     gap_flag = 0
 
     if msg_type == MSG_INIT:
         print(f"[INIT] Device {device_id} (v{version}) connected from {addr}")
-        device_last_seq[device_id] = seq
+        device_last_seq[device_id] = seq # Saves device's initial sequence number for later comparisons
 
     elif msg_type == MSG_DATA:
         if device_id in device_last_seq:
@@ -56,12 +58,9 @@ while True:
 
         device_last_seq[device_id] = seq
 
-        writer.writerow([device_id, seq, timestamp, arrival_time, duplicate_flag, gap_flag, payload])
-        file.flush()
+        csv_writer.writerow([device_id, seq, timestamp, arrival_time, duplicate_flag, gap_flag, payload])
+        file.flush() #Ensures buffer is emptied and everything is printed in csv
         print(
             f"[DATA] Dev={device_id} Seq={seq} Value={payload} "
             f"Dup={duplicate_flag} Gap={gap_flag} Batch={batch_flag}"
         )
-
-    elif msg_type == MSG_HEARTBEAT:
-        print(f"[HEARTBEAT] from Device {device_id} (v{version})")
