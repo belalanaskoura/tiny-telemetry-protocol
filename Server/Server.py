@@ -40,7 +40,6 @@ if len(data) > HEADER_SIZE:
     payload_bytes = data[HEADER_SIZE:] # Extracts all bytes after the header
     payload = paylaod_bytes.decode("utf-8")
 
-
     duplicate_flag = 0
     gap_flag = 0
 

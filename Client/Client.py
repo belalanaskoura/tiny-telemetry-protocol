@@ -34,8 +34,9 @@ start_time = time.time()
 while time.time() - start_time < DURATION:
     seq_num += 1
     header = build_header(DEVICE_ID, seq_num, MSG_DATA, batch_flag= 0, checksum= 0, version= 1)
+    
     # Simulated sensor reading (temperature)
-    temperature = round(random.uniform(20, 34), 1)
+    temperature = round(random.uniform(20.0, 34.0), 1)
     payload = f"{temperature}".encode("utf-8")
     packet = header + payload
 
