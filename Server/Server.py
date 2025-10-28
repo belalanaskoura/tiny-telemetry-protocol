@@ -3,8 +3,9 @@ import struct
 import csv
 import time
 
-# Header format: DeviceID (H), SeqNum (H), Timestamp (I), MsgType (B), Flags (B), Reserved (H)
-HEADER_FORMAT = "!HHIBBH"
+# Header format:
+# SeqNum (H), DeviceID (B), MsgType (B), Timestamp (I), BatchFlag (B), Checksum (H), Version (B)
+HEADER_FORMAT = "!HBBIBHB"
 HEADER_SIZE = struct.calcsize(HEADER_FORMAT)
 
 # Message types
@@ -21,41 +22,46 @@ print("Server listening on port 5005...")
 device_last_seq = {}
 
 # Prepare CSV file
-with open("sensor_data.csv", mode="w", newline="") as file:
-    writer = csv.writer(file)
-    writer.writerow(["device_id", "seq", "timestamp", "arrival_time", "duplicate_flag", "gap_flag", "data_value"])
+file = open("sensor_data.csv", "w", newline="")
+writer = csv.writer(file)
+writer.writerow(["device_id", "seq", "timestamp", "arrival_time", "duplicate_flag", "gap_flag", "data_value"])
 
-    while True:
-        data, addr = server_socket.recvfrom(1024)
-        arrival_time = time.time()
+while True:
+    data, addr = server_socket.recvfrom(1024)
+    arrival_time = time.time()
 
-        if len(data) < HEADER_SIZE:
-            continue  # ignore invalid packet
+    if len(data) < HEADER_SIZE:
+        continue  # ignore invalid packet
 
-        # Parse header
-        device_id, seq, timestamp, msg_type, flags, _ = struct.unpack(HEADER_FORMAT, data[:HEADER_SIZE])
-        payload = data[HEADER_SIZE:].decode("utf-8") if len(data) > HEADER_SIZE else ""
+    # Parse header
+    seq, device_id, msg_type, timestamp, batch_flag, checksum, version = struct.unpack(
+        HEADER_FORMAT, data[:HEADER_SIZE]
+    )
+    payload = data[HEADER_SIZE:].decode("utf-8") if len(data) > HEADER_SIZE else ""
 
-        duplicate_flag = 0
-        gap_flag = 0
+    duplicate_flag = 0
+    gap_flag = 0
 
-        if msg_type == MSG_INIT:
-            print(f"[INIT] Device {device_id} connected from {addr}")
-            device_last_seq[device_id] = seq
+    if msg_type == MSG_INIT:
+        print(f"[INIT] Device {device_id} (v{version}) connected from {addr}")
+        device_last_seq[device_id] = seq
 
-        elif msg_type == MSG_DATA:
-            # Detect duplicates
-            if device_id in device_last_seq:
-                last_seq = device_last_seq[device_id]
-                if seq == last_seq:
-                    duplicate_flag = 1
-                elif seq > last_seq + 1:
-                    gap_flag = 1
-            device_last_seq[device_id] = seq
+    elif msg_type == MSG_DATA:
+        if device_id in device_last_seq:
+            last_seq = device_last_seq[device_id]
+            if seq == last_seq:
+                duplicate_flag = 1
+            elif seq > last_seq + 1:
+                gap_flag = 1
 
-            writer.writerow([device_id, seq, timestamp, arrival_time, duplicate_flag, gap_flag, payload])
-            file.flush()
-            print(f"[DATA] Device {device_id} Seq={seq} Value={payload} Dup={duplicate_flag} Gap={gap_flag}")
+        device_last_seq[device_id] = seq
 
-        elif msg_type == MSG_HEARTBEAT:
-            print(f"[HEARTBEAT] from Device {device_id}")
+        writer.writerow([device_id, seq, timestamp, arrival_time, duplicate_flag, gap_flag, payload])
+        file.flush()
+        print(
+            f"[DATA] Dev={device_id} Seq={seq} Value={payload} "
+            f"Dup={duplicate_flag} Gap={gap_flag} Batch={batch_flag}"
+        )
+
+    elif msg_type == MSG_HEARTBEAT:
+        print(f"[HEARTBEAT] from Device {device_id} (v{version})")
