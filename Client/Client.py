@@ -9,10 +9,10 @@ MSG_INIT = 1
 MSG_DATA = 2
 MSG_HEARTBEAT = 3
 
-SERVER_IP = "127.0.0.1"   # change to server IP if needed
+SERVER_IP = "127.0.0.1"
 SERVER_PORT = 5005
 DEVICE_ID = 1
-INTERVAL = 5  # seconds
+INTERVAL = 1 
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 seq_num = 0
@@ -31,7 +31,7 @@ while True:
     seq_num += 1
     header = build_header(DEVICE_ID, seq_num, MSG_DATA)
     # Simulated sensor reading (temperature)
-    temperature = round(random.uniform(20.0, 30.0), 2)
+    temperature = round(random.uniform(20.0, 21.5), 2)
     payload = f"{temperature}".encode("utf-8")
     packet = header + payload
 
