@@ -29,7 +29,8 @@ total_bytes = 0
 packets_recieved = 0
 duplicate_count = 0
 sequence_gap_count = 0
-cpu_time = 0
+total_cpu_time = 0
+
 
 # Create UDP socket
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -83,18 +84,20 @@ while time.time() - start_time < DURATION:
 
             device_last_seq[device_id] = seq
 
-            cpu_end_time = time.perf_counter()
-            cpu_time = cpu_end_time - cpu_start_time
+            
 
             csv_writer.writerow([device_id, seq, timestamp, arrival_time, duplicate_flag, gap_flag, payload])
             file.flush()  # Ensures buffer is emptied and everything is printed in csv
 
             print(f"[DATA] Dev={device_id} Seq={seq} Value={payload} "f"Dup={duplicate_flag} Gap={gap_flag} Batch={batch_flag}", flush= True)
 
+    cpu_end_time = time.perf_counter()
+    total_cpu_time += (cpu_end_time - cpu_start_time)
+
 
 bytes_per_report = round(total_bytes / packets_recieved, 2)
 duplicate_rate = (duplicate_count / packets_recieved) * 100
-cpu_ms_per_report = (cpu_time / packets_recieved) * 1000 #milliseconds
+cpu_ms_per_report = (total_cpu_time / packets_recieved) * 1000 #milliseconds
 
 print("Metrics Summary")
 print(F"Average bytes per report: {bytes_per_report} " )
