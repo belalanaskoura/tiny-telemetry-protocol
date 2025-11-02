@@ -87,9 +87,17 @@ for proc, name in [(server_process, "SERVER"), (client_process, "CLIENT")]:
             print(f"[{name}] {line.strip()}")   
 
 
+# Stops server and client from running after specified duration
 for proc, name in [(client_process, "Client"), (server_process, "Server")]:
     if proc.poll() is None:
-        os.kill(proc.pid, signal.SIGTERM)
-        print(f"{name} stopped.")
+        print(f"Stopping {name}...")
+        proc.terminate()             
+        try:
+            proc.wait(timeout=1.5)    
+        except subprocess.TimeoutExpired:
+            print(f"{name} did not stop, killing it...")
+            proc.kill()
+        else:
+            print(f"{name} stopped cleanly.")
 
 print("\n TTPv1 session complete!")
