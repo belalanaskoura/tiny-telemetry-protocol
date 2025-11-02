@@ -119,6 +119,6 @@ cpu_ms_per_report = (total_cpu_time / packets_recieved) * 1000 #milliseconds
 print("Metrics Summary")
 print(F"Average bytes per report: {bytes_per_report} " )
 print(F"Packets recieved: {packets_recieved}")
-print(F"Duplicate rate: {duplicate_rate}")
+print(F"Duplicate rate: {duplicate_rate:.2f} %")
 print(F"Sequence Gap counts: {sequence_gap_count} ")
 print(F"Cpu time per report in ms: {cpu_ms_per_report:.6f}")
