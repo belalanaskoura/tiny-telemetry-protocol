@@ -4,8 +4,13 @@ import os
 import signal
 import sys
 
-# Configurations requested
-RUN_DURATION = 70
+# Let user specify run duration
+try:
+    RUN_DURATION = int(input("Enter run duration in seconds: "))
+except ValueError:
+    print("Invalid input. Please enter a number.")
+    exit(1)
+
 PYTHON = sys.executable
 
 # Function to find file in project directory
@@ -75,7 +80,13 @@ while time.time() - start_time < RUN_DURATION:
 
     time.sleep(0.1)
 
-print("\nCleaning up...")
+# To print metrics
+for proc, name in [(server_process, "SERVER"), (client_process, "CLIENT")]:
+    if proc.stdout:
+        for line in proc.stdout.readlines():
+            print(f"[{name}] {line.strip()}")   
+
+
 for proc, name in [(client_process, "Client"), (server_process, "Server")]:
     if proc.poll() is None:
         os.kill(proc.pid, signal.SIGTERM)
