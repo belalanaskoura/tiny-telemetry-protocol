@@ -5,7 +5,7 @@ This project simulates a small telemetry system with a client sending sensor dat
 
 Project Structure
 -----------------
-tiny-telemetary-protocol/
+tiny-telemetry-protocol/
 │
 ├─ Automation/
 │   ├─ Baseline.py          # Launches server and client, coordinates test
