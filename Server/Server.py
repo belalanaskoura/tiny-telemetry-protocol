@@ -4,6 +4,10 @@ import csv
 import time
 import argparse
 
+def calculate_checksum(data):
+    checksum = sum(data) % 65536
+    return checksum
+
 
 # Gets duration to run from Baseline.py
 parser = argparse.ArgumentParser()
@@ -65,6 +69,11 @@ while time.time() - start_time < DURATION:
     seq, device_id, msg_type, timestamp, batch_flag, checksum, version = struct.unpack(
     HEADER_FORMAT, data[:HEADER_SIZE]
 )
+    data_without_checksum = data[:9] + b'\x00\x00' + data[11:]
+    calculated_checksum = calculate_checksum(data_without_checksum)
+
+    if calculated_checksum != checksum:
+        print(f"[WARNING] Checksum mismatch! Expected {calculated_checksum}, got {checksum}", flush=True)
 
     if len(data) > HEADER_SIZE:
         payload_bytes = data[HEADER_SIZE:]  # Extracts all bytes after the header
@@ -94,7 +103,10 @@ while time.time() - start_time < DURATION:
             csv_writer.writerow([device_id, seq, timestamp, arrival_time, duplicate_flag, gap_flag, payload])
             file.flush()  # Ensures buffer is emptied and everything is printed in csv
 
-            print(f"[DATA] Dev={device_id} Seq={seq} Value={payload} "f"Dup={duplicate_flag} Gap={gap_flag} Batch={batch_flag}", flush= True)
+            print(f"[DATA] Dev={device_id} Seq={seq} Value={payload} "
+            f"Dup={duplicate_flag} Gap={gap_flag} "
+            f"Checksum={'OK' if calculated_checksum == checksum else 'FAIL'}", flush=True)  
+
 
     cpu_end_time = time.perf_counter()
     total_cpu_time += (cpu_end_time - cpu_start_time)
