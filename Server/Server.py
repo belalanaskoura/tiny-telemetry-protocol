@@ -56,6 +56,11 @@ while time.time() - start_time < DURATION:
     packets_recieved += 1
     total_bytes += len(data)
 
+    # Eliminate noise packets
+    if len(data) < HEADER_SIZE:
+                print(f"[WARNING] Malformed packet (too small): {len(data)} bytes", flush=True)
+                continue
+
     # Parse header
     seq, device_id, msg_type, timestamp, batch_flag, checksum, version = struct.unpack(
     HEADER_FORMAT, data[:HEADER_SIZE]
