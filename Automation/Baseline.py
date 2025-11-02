@@ -3,13 +3,33 @@ import time
 import os
 import signal
 import sys
+import socket
+
+#Get LAN IP or fallback to localhost.
+def get_lan_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80)) #Connects Socket to Google
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "127.0.0.1"
+
+
+# Let user specify server IP (Will default to LAN IP if no input is entered)
+try:
+    default_ip = get_lan_ip()
+    user_ip = input(f"Enter server IP address (default {default_ip}): ").strip()
+    SERVER_IP = user_ip if user_ip else default_ip
 
 # Let user specify run duration
-try:
-    RUN_DURATION = int(input("Enter run duration in seconds: "))
+    run_input = input("Enter run duration in seconds: ").strip()
+    RUN_DURATION = int(run_input) if run_input else 60  # fallback default duration
 except ValueError:
     print("Invalid input. Please enter a number.")
     exit(1)
+
 
 PYTHON = sys.executable
 
