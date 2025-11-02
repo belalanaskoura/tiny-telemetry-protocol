@@ -18,17 +18,18 @@ def get_lan_ip():
 
 
 # Let user specify server IP (Will default to LAN IP if no input is entered)
-try:
-    default_ip = get_lan_ip()
-    user_ip = input(f"Enter server IP address (default {default_ip}): ").strip()
-    SERVER_IP = user_ip if user_ip else default_ip
-
-# Let user specify run duration
-    run_input = input("Enter run duration in seconds: ").strip()
-    RUN_DURATION = int(run_input) if run_input else 60  # fallback default duration
-except ValueError:
-    print("Invalid input. Please enter a number.")
-    exit(1)
+if len(sys.argv) >= 3:
+    SERVER_IP = sys.argv[1]
+    RUN_DURATION = int(sys.argv[2])
+else:
+    # Fallback to user input if not provided (manual mode)
+    try:
+        default_ip = get_lan_ip()
+        SERVER_IP = input(f"Enter server IP address (default {default_ip}): ").strip() or default_ip
+        RUN_DURATION = int(input("Enter run duration in seconds: "))
+    except ValueError:
+        print("Invalid input. Please enter a number.")
+        sys.exit(1)
 
 
 PYTHON = sys.executable
