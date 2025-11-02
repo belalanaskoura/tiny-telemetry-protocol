@@ -2,6 +2,14 @@ import socket
 import struct
 import csv
 import time
+import argparse
+
+
+# Gets duration to run from Baseline.py
+parser = argparse.ArgumentParser()
+parser.add_argument("--duration", type=int, default=60) # If not specified
+args = parser.parse_args()
+
 
 # Header format:
 # SeqNum (H), DeviceID (B), MsgType (B), Timestamp (I), BatchFlag (B), Checksum (H), Version (B)
@@ -13,8 +21,8 @@ MSG_INIT = 1
 MSG_DATA = 2
 MSG_HEARTBEAT = 3
 
-DURATION = 60  # seconds
 
+DURATION = args.duration
 
 # Metrics to collect
 total_bytes = 0
@@ -25,8 +33,9 @@ cpu_time = 0
 
 # Create UDP socket
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 server_socket.bind(("0.0.0.0", 9999))
-print("Server waiting for readings on port 9999...")
+print("Server waiting for readings on port 9999...", flush = True)
 
 # Track device info
 device_last_seq = {}
@@ -59,7 +68,7 @@ while time.time() - start_time < DURATION:
         gap_flag = 0
 
         if msg_type == MSG_INIT:
-            print(f"[INIT] Device {device_id} (v{version}) connected from {clientAddress}")
+            print(f"[INIT] Device {device_id} (v{version}) connected from {clientAddress}", flush= True)
             device_last_seq[device_id] = seq  # Saves device's initial sequence number for later comparisons
 
         elif msg_type == MSG_DATA:
@@ -80,7 +89,7 @@ while time.time() - start_time < DURATION:
             csv_writer.writerow([device_id, seq, timestamp, arrival_time, duplicate_flag, gap_flag, payload])
             file.flush()  # Ensures buffer is emptied and everything is printed in csv
 
-            print(f"[DATA] Dev={device_id} Seq={seq} Value={payload} "f"Dup={duplicate_flag} Gap={gap_flag} Batch={batch_flag}")
+            print(f"[DATA] Dev={device_id} Seq={seq} Value={payload} "f"Dup={duplicate_flag} Gap={gap_flag} Batch={batch_flag}", flush= True)
 
 
 bytes_per_report = round(total_bytes / packets_recieved, 2)
