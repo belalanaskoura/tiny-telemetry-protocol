@@ -25,13 +25,8 @@ DEVICE_ID = 1
 INTERVAL = 1
 DURATION = args.duration
 
-# Simulation controls
-LOSS_PROBABILITY = 0.10       # 10% chance to drop a packet
-DUPLICATE_PROBABILITY = 0.10  # 10% chance to resend the same packet
-
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 seq_num = 0
-last_packet = None
 
 #Construct complete packet with proper checksum
 def construct_packet_with_checksum(device_id, seq_num, msg_type, payload=b"", batch_flag=0, version=1):
@@ -73,19 +68,7 @@ while time.time() - start_time < DURATION:
     # Construct packet with proper checksum
     packet, checksum = construct_packet_with_checksum(DEVICE_ID, seq_num, MSG_DATA, payload)
 
-    # Randomly simulate packet loss or duplication
-    r = random.random()
-
-    if r < LOSS_PROBABILITY:
-        time.sleep(INTERVAL)
-        continue
-
-    if r < LOSS_PROBABILITY + DUPLICATE_PROBABILITY and last_packet:
-        client_socket.sendto(last_packet, (SERVER_IP, SERVER_PORT))
-
-    # Normal send
     client_socket.sendto(packet, (SERVER_IP, SERVER_PORT))
-    last_packet = packet
     print(f"[DATA] sent seq={seq_num}, temp={temperature}, checksum={checksum}", flush=True)
 
     # Drift-corrected sleep: Ensures each packet is sent exactly 1 second after its predecessor
