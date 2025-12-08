@@ -15,17 +15,13 @@ args = parser.parse_args()
 
 DURATION = args.duration
 
-
 # Packet Header Definition
-# SeqNum (H), DeviceID (B), MsgType (B), Timestamp (I),
-# BatchFlag (B), Checksum (H), Version (B)
 HEADER_FORMAT = "!HBBIBHB"
 HEADER_SIZE = struct.calcsize(HEADER_FORMAT)
 
 MSG_INIT = 1
 MSG_DATA = 2
 MSG_HEARTBEAT = 3
-
 
 # Metrics
 total_bytes = 0
@@ -38,17 +34,13 @@ total_cpu_time = 0
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 server_socket.bind(("0.0.0.0", 9999))
-
-# IMPORTANT FIX: prevent recvfrom from blocking forever
 server_socket.settimeout(1.0)
 
 print("Server is running and listening for sensor data on port 9999...", flush=True)
 
-
 # Device State Tracking
 device_last_seq = {}
-device_last_seen = {}   # Track last heartbeat/data timestamp
-
+device_last_seen = {}
 
 # CSV Setup
 file = open("sensor_data.csv", "w", newline="")
@@ -67,8 +59,6 @@ csv_writer.writerow([
 start_time = time.time()
 
 while time.time() - start_time < DURATION:
-
-    # Receive packet (non-blocking via timeout)
     try:
         data, client_address = server_socket.recvfrom(1024)
     except socket.timeout:
@@ -80,30 +70,18 @@ while time.time() - start_time < DURATION:
     packets_received += 1
     total_bytes += len(data)
 
-    # Basic Validation
     if len(data) < HEADER_SIZE:
-        print(f"Warning: Ignored malformed packet ({len(data)} bytes)", flush=True)
         continue
 
-    # Parse Header
     seq, device_id, msg_type, timestamp, batch_flag, checksum, version = struct.unpack(
         HEADER_FORMAT, data[:HEADER_SIZE]
     )
 
-    # Checksum verification
     data_without_checksum = data[:9] + b"\x00\x00" + data[11:]
     calculated_checksum = calculate_checksum(data_without_checksum)
 
-    if calculated_checksum != checksum:
-        print(
-            f"Warning: Checksum mismatch for packet {seq} from device {device_id}",
-            flush=True
-        )
-
-    # Update last-seen time for device (heartbeat or data)
     device_last_seen[device_id] = time.time()
 
-    # Payload Handling
     payload = ""
     if len(data) > HEADER_SIZE:
         payload = data[HEADER_SIZE:].decode("utf-8", errors="ignore")
@@ -111,64 +89,52 @@ while time.time() - start_time < DURATION:
     duplicate_flag = 0
     gap_flag = 0
 
-    # INIT Message
     if msg_type == MSG_INIT:
-        print(
-            f"New device connected. ID={device_id}, "
-            f"Version={version}, Address={client_address}",
-            flush=True
-        )
+        print(f"New device connected. ID={device_id}, Version={version}")
         device_last_seq[device_id] = seq
 
-    # HEARTBEAT Message
     elif msg_type == MSG_HEARTBEAT:
-        print(
-            f"Heartbeat received from device {device_id}",
-            flush=True
-        )
+        print(f"Heartbeat received from device {device_id}")
 
-    # DATA Message
     elif msg_type == MSG_DATA:
         if device_id in device_last_seq:
             last_seq = device_last_seq[device_id]
-
             if seq == last_seq:
                 duplicate_flag = 1
                 duplicate_count += 1
-
             elif seq > last_seq + 1:
                 gap_flag = 1
                 sequence_gap_count += 1
 
         device_last_seq[device_id] = seq
 
-        csv_writer.writerow([
-            device_id,
-            seq,
-            timestamp,
-            arrival_time,
-            duplicate_flag,
-            gap_flag,
-            payload
-        ])
+        values = payload.split(",") if batch_flag > 1 else [payload]
+
+        for value in values:
+            csv_writer.writerow([
+                device_id,
+                seq,
+                timestamp,
+                arrival_time,
+                duplicate_flag,
+                gap_flag,
+                value
+            ])
         file.flush()
 
-        integrity_status = "Valid" if calculated_checksum == checksum else "Corrupted"
+        integrity = "Valid" if calculated_checksum == checksum else "Corrupted"
 
         print(
-            f"Data received from device {device_id} | "
-            f"Packet {seq} | Value: {payload} | "
-            f"Duplicate: {'Yes' if duplicate_flag else 'No'} | "
-            f"Sequence gap: {'Yes' if gap_flag else 'No'} | "
-            f"Checksum: {integrity_status}",
+            f"Batch size {len(values)} from device {device_id} | "
+            f"Packet {seq} | Duplicate {'Yes' if duplicate_flag else 'No'} | "
+            f"Gap {'Yes' if gap_flag else 'No'} | "
+            f"Checksum {integrity}",
             flush=True
         )
 
-    cpu_end_time = time.perf_counter()
-    total_cpu_time += (cpu_end_time - cpu_start_time)
+    total_cpu_time += time.perf_counter() - cpu_start_time
 
-
-# Final Metrics Summary
+# Metrics Summary
 bytes_per_report = round(total_bytes / packets_received, 2) if packets_received else 0
 duplicate_rate = (duplicate_count / packets_received) * 100 if packets_received else 0
 cpu_ms_per_report = (total_cpu_time / packets_received) * 1000 if packets_received else 0
