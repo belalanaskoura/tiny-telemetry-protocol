@@ -174,7 +174,7 @@ root.geometry("1000x700")
 # Title
 ctk.CTkLabel(
     root,
-    text="Application – Tiny Telemetry Protocol",
+    text="Tiny Telemetry Protocol",
     font=ctk.CTkFont(size=22, weight="bold")
 ).pack(pady=(20, 10))
 
