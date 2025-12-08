@@ -4,23 +4,7 @@ import time
 import random
 import argparse
 
-# Checksum Calculation
-def calculate_checksum(data):
-    return sum(data) % 65536
-
-# Argument Parsing
-parser = argparse.ArgumentParser()
-parser.add_argument("--duration", type=int, default=60)
-parser.add_argument("--server_ip", type=str, default="127.0.0.1")
-parser.add_argument("--batch_size", type=int, default=1)
-args = parser.parse_args()
-
-DURATION = args.duration
-SERVER_IP = args.server_ip
-
-# Enforce batch size <= duration
-BATCH_SIZE = max(1, min(args.batch_size, DURATION))
-
+# ------------------ Constants ------------------
 HEADER_FORMAT = "!HBBIBHB"
 HEADER_SIZE = struct.calcsize(HEADER_FORMAT)
 
@@ -28,102 +12,155 @@ MSG_INIT = 1
 MSG_DATA = 2
 MSG_HEARTBEAT = 3
 
-SERVER_PORT = 9999
 DEVICE_ID = 1
-DATA_INTERVAL = 1
-HEARTBEAT_INTERVAL = 5
+VERSION = 1
+HEARTBEAT_INTERVAL = 10
+SEND_INTERVAL = 1
 
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-seq_num = 0
+
+# ------------------ Checksum ------------------
+def calculate_checksum(data):
+    return sum(data) % 65536
+
+
+# ------------------ Argument Parsing ------------------
+parser = argparse.ArgumentParser()
+parser.add_argument("--server_ip", type=str, required=True)
+parser.add_argument("--duration", type=int, default=60)
+parser.add_argument("--batch_size", type=int, default=0)
+args = parser.parse_args()
+
+SERVER_IP = args.server_ip
+DURATION = args.duration
+BATCH_SIZE = args.batch_size
+
+if BATCH_SIZE < 0:
+    BATCH_SIZE = 0
+
+
+# ------------------ Socket Setup ------------------
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+server_address = (SERVER_IP, 9999)
+
+print(f"Connected to server {SERVER_IP}:9999")
+
+# ------------------ INIT ------------------
+seq = 1
+init_header = struct.pack(
+    HEADER_FORMAT,
+    seq,
+    DEVICE_ID,
+    MSG_INIT,
+    int(time.time()),
+    0,
+    0,
+    VERSION
+)
+
+checksum = calculate_checksum(init_header)
+init_header = init_header[:9] + struct.pack("!H", checksum) + init_header[11:]
+
+sock.sendto(init_header, server_address)
+print("Initialization packet sent")
+
+seq += 1
+
+
+# ------------------ Send Logic ------------------
+start_time = time.time()
+last_heartbeat = start_time
+
 batch_buffer = []
 
-def construct_packet_with_checksum(device_id, seq_num, msg_type, payload=b"", batch_flag=0, version=1):
-    timestamp = int(time.time())
+
+def send_packet(payload):
+    global seq
 
     header = struct.pack(
         HEADER_FORMAT,
-        seq_num,
-        device_id,
-        msg_type,
-        timestamp,
-        batch_flag,
+        seq,
+        DEVICE_ID,
+        MSG_DATA,
+        int(time.time()),
         0,
-        version
+        0,
+        VERSION
     )
 
-    full_packet = header + payload
-    packet_for_checksum = full_packet[:9] + b"\x00\x00" + full_packet[11:]
-    checksum = calculate_checksum(packet_for_checksum)
+    packet = header + payload.encode()
+    checksum = calculate_checksum(packet)
+    packet = packet[:9] + struct.pack("!H", checksum) + packet[11:]
 
-    header_with_checksum = struct.pack(
-        HEADER_FORMAT,
-        seq_num,
-        device_id,
-        msg_type,
-        timestamp,
-        batch_flag,
-        checksum,
-        version
-    )
-
-    return header_with_checksum + payload
+    sock.sendto(packet, server_address)
+    seq += 1
 
 
-# INIT
-init_packet = construct_packet_with_checksum(DEVICE_ID, seq_num, MSG_INIT)
-client_socket.sendto(init_packet, (SERVER_IP, SERVER_PORT))
-print(f"Connected to server {SERVER_IP}:{SERVER_PORT}")
-print(f"Batch size set to {BATCH_SIZE}")
+def send_single_reading():
+    temperature = round(random.uniform(20.0, 35.0), 1)
+    send_packet(str(temperature))
+    print(f"Sent temperature {temperature} (packet {seq - 1})")
 
-start_time = time.time()
-last_heartbeat_time = start_time
+
+def send_batch():
+    global batch_buffer
+
+    payload = ",".join(batch_buffer)
+    send_packet(payload)
+    print(f"Sent batch of {len(batch_buffer)} readings (packet {seq - 1})")
+    batch_buffer = []
+
+
+# ------------------ Main Loop ------------------
+print(f"Batching {'Enabled' if BATCH_SIZE > 0 else 'Disabled'}")
 
 while time.time() - start_time < DURATION:
+
     current_time = time.time()
 
-    temperature = round(random.uniform(20.0, 34.0), 1)
-    batch_buffer.append(str(temperature))
-
-    if len(batch_buffer) >= BATCH_SIZE:
-        seq_num += 1
-        payload = ",".join(batch_buffer).encode("utf-8")
-
-        packet = construct_packet_with_checksum(
+    # -------- HEARTBEAT --------
+    if current_time - last_heartbeat >= HEARTBEAT_INTERVAL:
+        heartbeat_header = struct.pack(
+            HEADER_FORMAT,
+            seq,
             DEVICE_ID,
-            seq_num,
-            MSG_DATA,
-            payload,
-            batch_flag=len(batch_buffer)
+            MSG_HEARTBEAT,
+            int(current_time),
+            0,
+            0,
+            VERSION
         )
-        client_socket.sendto(packet, (SERVER_IP, SERVER_PORT))
 
-        print(f"Sent batch of {len(batch_buffer)} readings (packet {seq_num})")
-        batch_buffer.clear()
-
-    if current_time - last_heartbeat_time >= HEARTBEAT_INTERVAL:
-        seq_num += 1
-        heartbeat = construct_packet_with_checksum(
-            DEVICE_ID, seq_num, MSG_HEARTBEAT
+        checksum = calculate_checksum(heartbeat_header)
+        heartbeat_packet = (
+            heartbeat_header[:9] +
+            struct.pack("!H", checksum) +
+            heartbeat_header[11:]
         )
-        client_socket.sendto(heartbeat, (SERVER_IP, SERVER_PORT))
+
+        sock.sendto(heartbeat_packet, server_address)
         print("Heartbeat sent")
-        last_heartbeat_time = current_time
+        seq += 1
+        last_heartbeat = current_time
 
-    time.sleep(DATA_INTERVAL)
+    # -------- DATA SENDING --------
+    if BATCH_SIZE == 0:
+        # --- NO BATCHING MODE ---
+        send_single_reading()
+        time.sleep(SEND_INTERVAL)
 
-# Flush remaining batch
-if batch_buffer:
-    seq_num += 1
-    payload = ",".join(batch_buffer).encode("utf-8")
-    packet = construct_packet_with_checksum(
-        DEVICE_ID,
-        seq_num,
-        MSG_DATA,
-        payload,
-        batch_flag=len(batch_buffer)
-    )
-    client_socket.sendto(packet, (SERVER_IP, SERVER_PORT))
-    print(f"Sent final batch of {len(batch_buffer)} readings (packet {seq_num})")
+    else:
+        # --- BATCHING MODE ---
+        temperature = round(random.uniform(20.0, 35.0), 1)
+        batch_buffer.append(str(temperature))
 
-print("Finished sending data.")
-client_socket.close()
+        if len(batch_buffer) >= BATCH_SIZE:
+            send_batch()
+
+        time.sleep(SEND_INTERVAL)
+
+# -------- Flush remaining batch --------
+if BATCH_SIZE > 0 and batch_buffer:
+    send_batch()
+
+print("Finished sending data")
+sock.close()
