@@ -1,14 +1,16 @@
 Tiny Telemetry Protocol v1 (TTPv1)
 ===================================
 
-This project simulates a small telemetry system with a client sending sensor data (temperature) to a server, with a GUI for running automated baseline tests. The system tracks packets, calculates checksums, detects duplicates, and logs data in CSV format.
+This project simulates a small telemetry system with a client sending sensor data (temperature) to a server. A graphical application is provided to run predefined and customizable telemetry experiments. The system tracks packets, calculates checksums, detects duplicates and sequence gaps, and logs data in CSV format.
 
+-----------------
 Project Structure
 -----------------
+
 **tiny-telemetry-protocol/**
   - **Automation/**
-    - `Baseline.py` – Launches server and client, coordinates test
-    - `Baseline_GUI.py` – GUI to run baseline automation
+    - `TestRunner.py` – GUI application for running telemetry tests
+    - `Application.py` – Launches server and client with selected parameters
   - **Client/**
     - `Client.py` – Simulated telemetry client
   - **Server/**
@@ -23,78 +25,172 @@ Project Structure
 
 
 
+
+---
+
+System Overview
+---------------
+
+- **Application.py**
+  - Graphical user interface for the project.
+  - Allows the user to select between predefined and custom telemetry tests.
+  - Displays live logs from both client and server.
+  - Shows formatted CSV output once a test finishes.
+
+- **TestRunner.py**
+  - Automation and orchestration layer.
+  - Starts the server, then the client.
+  - Passes runtime parameters such as duration and batching configuration.
+  - Streams output back to the GUI or terminal.
+
+- **Client.py**
+  - Simulates a telemetry device sending temperature readings over UDP.
+  - Implements packet sequencing, checksums, optional batching, heartbeats,
+    and packet loss/duplication simulation.
+
+- **Server.py**
+  - Receives telemetry packets over UDP.
+  - Validates checksums.
+  - Detects duplicate packets and sequence gaps.
+  - Logs received telemetry data to a CSV file.
+
+---
+
+Supported Tests
+---------------
+
+### Baseline Test
+A predefined reference experiment used for controlled evaluation.
+
+- Duration: **60 seconds**
+- Batching: **Disabled**
+- Purpose:
+  - Establish a consistent performance baseline
+  - Observe packet integrity, duplication, and sequencing behavior
+  - Provide a reference point for comparison with custom tests
+
+The Baseline Test parameters are fixed and cannot be modified directly.
+
+### Custom Test
+A fully configurable experiment mode.
+
+User-controlled parameters:
+- Run duration (seconds)
+- Enable or disable batching
+- Batch size (packets per batch)
+
+The GUI automatically switches to Custom Test mode if the user edits the
+duration field or enables batching while in Baseline Test mode.
+
+---
+
 Features
 --------
-- UDP-based client-server telemetry.
-- Packet sequence numbers, checksums, duplicate detection, and gap detection.
-- Logs sensor data to `sensor_data.csv`.
-- GUI to launch tests and display logs.
-- Configurable run duration and server IP.
-- UDP packets can be tracked in real-time using **Wireshark** for network analysis.
+- UDP-based client–server telemetry.
+- Packet headers with:
+  - Sequence numbers
+  - Device ID
+  - Message type
+  - Timestamp
+  - Checksums
+- Duplicate packet detection.
+- Sequence gap detection.
+- Optional packet batching.
+- CSV-based telemetry logging.
+- Real-time log streaming in the GUI.
+- Automated experiment orchestration.
+- UDP packets can be captured and inspected using **Wireshark**.
+
+---
 
 Dependencies
 ------------
-Requires Python 3.10+ and the following libraries:
+Requires **Python 3.10+** and the following libraries:
 - pandas
 - customtkinter
 - tabulate
 
 All dependencies can be installed at once using the included `requirements.txt`.
 
+
+---
+
 Setup and Installation
 ----------------------
-1. Clone or download the repository to your computer.
-2. Open a terminal in the project folder.
+1. Clone or download the repository.
+2. Open a terminal in the project root directory.
 3. (Optional but recommended) Create a virtual environment:
    - Windows:
+     ```
      python -m venv venv
-   - Linux/Mac:
+     ```
+   - Linux / macOS:
+     ```
      python3 -m venv venv
+     ```
 4. Activate the virtual environment:
    - Windows:
+     ```
      venv\Scripts\activate
-   - Linux/Mac:
+     ```
+   - Linux / macOS:
+     ```
      source venv/bin/activate
+     ```
 5. Install all dependencies:
-   pip install -r requirements.txt
+    pip install -r requirements.txt
 
 Running the Project
 ------------------
 GUI Version (Recommended):
 1. Run the GUI:
-   python Baseline_GUI.py
-2. Input Fields:
-   - Server IP: Leave empty for auto-detection of LAN IP.
-   - Run Duration (seconds): How long to run the simulation (default 60s).
-3. Click "Run Baseline". The GUI will:
-   - Start the server.
-   - Start the client.
-   - Display live logs.
-   - Show sensor_data.csv in a formatted table once finished.
+   python Application.py
+2. Select a test type:
+- Baseline Test (60s, no batching)
+- Custom Test
+3. Configure parameters if using Custom Test.
+4. Click **Run Test**.
 
-CLI Version (Optional):
-1. Run Baseline.py from the command line:
-   python Baseline.py <server_ip> <duration>
-   - <server_ip>: IP of the server (or leave empty for LAN IP).
-   - <duration>: Duration in seconds to run the simulation.
+The GUI will:
+- Start the server.
+- Start the client.
+- Display live logs.
+- Show the contents of `sensor_data.csv` in a formatted table after completion.
+
+### CLI Version (Optional)
+The automation layer can also be run directly from the command line:
+python TestRunner.py <server_ip> <duration> <batch_size>
+
+Parameters:
+- `<server_ip>`: IP address of the server (LAN or localhost).
+- `<duration>`: Duration in seconds to run the simulation.
+- `<batch_size>`: Packets per batch (0 disables batching).
+
+---
+
 
 CSV Output
 ----------
 All telemetry data is logged in:
 Server/sensor_data.csv
 
-Columns:
-- device_id — ID of the client device.
-- seq — Packet sequence number.
-- timestamp — Unix timestamp of client packet.
-- arrival_time — Time the server received the packet.
-- duplicate_flag — 1 if duplicate, 0 otherwise.
-- gap_flag — 1 if a sequence gap detected, 0 otherwise.
-- data_value — Payload value (temperature).
+
+CSV Columns:
+- **device_id** — ID of the client device.
+- **seq** — Packet sequence number.
+- **timestamp** — Unix timestamp generated by the client.
+- **arrival_time** — Time the server received the packet.
+- **duplicate_flag** — 1 if packet is a duplicate, 0 otherwise.
+- **gap_flag** — 1 if a sequence gap is detected, 0 otherwise.
+- **data_value** — Temperature payload value.
+
+---
 
 Notes
 -----
-- Server must run before the client sends data (handled automatically by Baseline.py and GUI).
-- Packet loss and duplication are simulated randomly in the client.
-- You can adjust simulation behavior in Client.py constants.
-- UDP packets can be tracked and analyzed in real-time using **Wireshark** for debugging and inspection.
+- The server is always started before the client (handled automatically by
+  TestRunner.py and the GUI).
+- Packet loss and duplication behavior can be adjusted in `Client.py`.
+- Batching trades off reduced network overhead against increased delivery latency.
+- UDP packets can be analyzed live using **Wireshark** for debugging and inspection.
+
