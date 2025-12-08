@@ -18,7 +18,7 @@ def get_lan_ip():
 
 # Read arguments
 # Usage:
-# python Baseline.py <server_ip> <duration> <batch_size>
+# python TestRunner.py <server_ip> <duration> <batch_size>
 if len(sys.argv) >= 4:
     SERVER_IP = sys.argv[1]
     DURATION = int(sys.argv[2])
@@ -37,12 +37,13 @@ if BATCH_SIZE > DURATION:
 
 PYTHON = sys.executable
 
-# Locate files
+
 def find_file(filename, search_dir):
     for root, _, files in os.walk(search_dir):
         if filename in files:
             return os.path.join(root, filename)
     return None
+
 
 automation_dir = os.path.dirname(os.path.abspath(__file__))
 main_dir = os.path.dirname(automation_dir)
@@ -53,6 +54,7 @@ client_path = find_file("Client.py", main_dir)
 if not server_path or not client_path:
     print("Error: Could not find Server.py or Client.py")
     sys.exit(1)
+
 
 print("Starting server...")
 server_process = subprocess.Popen(
@@ -68,8 +70,7 @@ print("Starting client...")
 client_process = subprocess.Popen(
     [
         PYTHON,
-        "-u",
-        client_path,
+        "-u", client_path,
         "--duration", str(DURATION),
         "--server_ip", SERVER_IP,
         "--batch_size", str(BATCH_SIZE)
