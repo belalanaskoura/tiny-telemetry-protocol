@@ -8,7 +8,7 @@ import threading
 import pandas as pd
 from tabulate import tabulate
 
-# Path setup
+# ------------------ Path Setup ------------------
 if getattr(sys, 'frozen', False):
     base_path = sys._MEIPASS
 else:
@@ -18,7 +18,7 @@ csv_path = os.path.join(base_path, "../Server/sensor_data.csv")
 baseline_path = os.path.join(base_path, "Baseline.py")
 
 
-# Utility
+# ------------------ Utility Functions ------------------
 def get_lan_ip():
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -72,7 +72,8 @@ def run_baseline_thread(ip, duration, batch_size):
     log_box.delete("1.0", "end")
     log_box.insert(
         "end",
-        f"Starting Baseline for {duration}s on server {ip} (Batch size: {batch_size})...\n\n"
+        f"Starting Baseline for {duration}s on server {ip} "
+        f"(Batching {'Enabled' if batch_size > 0 else 'Disabled'})...\n\n"
     )
     log_box.configure(state="disabled")
 
@@ -87,28 +88,61 @@ def run_baseline_thread(ip, duration, batch_size):
     stream_process_output(process)
 
 
+# ------------------ Recommendation Logic ------------------
+def recommend_batch_size(duration):
+    return max(1, min(duration // 5, 10))
+
+
+def update_batch_recommendation(event=None):
+    if not batching_enabled.get():
+        return
+
+    duration_text = duration_entry.get().strip()
+    if not duration_text.isdigit():
+        return
+
+    duration = int(duration_text)
+    recommended = recommend_batch_size(duration)
+
+    batch_entry.delete(0, "end")
+    batch_entry.insert(0, str(recommended))
+
+
+# ------------------ Run Button Logic ------------------
 def run_baseline():
     ip = ip_entry.get().strip() or get_lan_ip()
-    duration = duration_entry.get().strip()
-    batch_size = batch_entry.get().strip()
+    duration_text = duration_entry.get().strip()
 
-    if not duration.isdigit() or not batch_size.isdigit():
-        messagebox.showerror("Invalid Input", "Duration and batch size must be numbers.")
+    if not duration_text.isdigit():
+        messagebox.showerror("Invalid Input", "Run duration must be a number.")
         return
 
-    duration = int(duration)
-    batch_size = int(batch_size)
+    duration = int(duration_text)
 
-    if batch_size < 1:
-        messagebox.showerror("Invalid Batch Size", "Batch size must be at least 1.")
-        return
+    # Batching disabled
+    if not batching_enabled.get():
+        batch_size = 0
 
-    if batch_size > duration:
-        messagebox.showerror(
-            "Invalid Batch Size",
-            "Batch size cannot be greater than run duration."
-        )
-        return
+    # Batching enabled
+    else:
+        batch_text = batch_entry.get().strip()
+
+        if not batch_text.isdigit():
+            messagebox.showerror("Invalid Input", "Batch size must be a number.")
+            return
+
+        batch_size = int(batch_text)
+
+        if batch_size < 1:
+            messagebox.showerror("Invalid Batch Size", "Batch size must be at least 1.")
+            return
+
+        if batch_size > duration:
+            messagebox.showerror(
+                "Invalid Batch Size",
+                "Batch size cannot be greater than run duration."
+            )
+            return
 
     threading.Thread(
         target=run_baseline_thread,
@@ -117,7 +151,7 @@ def run_baseline():
     ).start()
 
 
-# GUI setup
+# ------------------ GUI Setup ------------------
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
@@ -125,6 +159,8 @@ root = ctk.CTk()
 root.title("Tiny Telemetry Protocol v1")
 root.geometry("1000x700")
 
+
+# Title
 title_label = ctk.CTkLabel(
     root,
     text="Baseline Automation Test",
@@ -145,22 +181,51 @@ ip_entry.grid(row=0, column=1, padx=5)
 # Duration
 duration_frame = ctk.CTkFrame(root)
 duration_frame.pack(pady=10)
-ctk.CTkLabel(duration_frame, text="Run Duration (seconds):", font=ctk.CTkFont(size=14)).grid(row=0, column=0, padx=5)
+ctk.CTkLabel(
+    duration_frame,
+    text="Run Duration (seconds):",
+    font=ctk.CTkFont(size=14)
+).grid(row=0, column=0, padx=5)
 duration_entry = ctk.CTkEntry(duration_frame, width=100)
 duration_entry.insert(0, "60")
 duration_entry.grid(row=0, column=1, padx=5)
 
+# IMPORTANT: live update of recommendation
+duration_entry.bind("<KeyRelease>", update_batch_recommendation)
 
-# Batch Size
+
+# ------------------ Batching Toggle ------------------
+batching_enabled = ctk.BooleanVar(value=False)
+
+def toggle_batching():
+    if batching_enabled.get():
+        batch_frame.pack(pady=10)
+        update_batch_recommendation()
+    else:
+        batch_frame.pack_forget()
+        batch_entry.delete(0, "end")
+        batch_entry.insert(0, "0")
+
+
+batch_check = ctk.CTkCheckBox(
+    root,
+    text="Enable Batching",
+    variable=batching_enabled,
+    command=toggle_batching
+)
+batch_check.pack(pady=10)
+
+
+# Batch Size Frame (hidden by default)
 batch_frame = ctk.CTkFrame(root)
-batch_frame.pack(pady=10)
 ctk.CTkLabel(
     batch_frame,
-    text="Batch Size (1 = no batching):",
+    text="Batch Size:",
     font=ctk.CTkFont(size=14)
 ).grid(row=0, column=0, padx=5)
+
 batch_entry = ctk.CTkEntry(batch_frame, width=100)
-batch_entry.insert(0, "1")
+batch_entry.insert(0, "0")
 batch_entry.grid(row=0, column=1, padx=5)
 
 
@@ -176,7 +241,7 @@ run_button = ctk.CTkButton(
 run_button.pack(pady=20)
 
 
-# Log box
+# Log Box
 log_frame = ctk.CTkFrame(root)
 log_frame.pack(padx=20, pady=10, fill="both", expand=True)
 
