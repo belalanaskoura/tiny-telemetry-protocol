@@ -15,7 +15,8 @@ else:
     base_path = os.path.dirname(os.path.abspath(__file__))
 
 csv_path = os.path.join(base_path, "../Server/sensor_data.csv")
-baseline_path = os.path.join(base_path, "Baseline.py")
+test_runner_path = os.path.join(base_path, "TestRunner.py")
+
 
 
 # ------------------ Utility Functions ------------------
@@ -143,7 +144,7 @@ def run_test_thread(ip, duration, batch_size):
     )
     log_box.configure(state="disabled")
 
-    cmd = [sys.executable, "-u", baseline_path, ip, str(duration), str(batch_size)]
+    cmd = [sys.executable, "-u", test_runner_path, ip, str(duration), str(batch_size)]
     process = subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
