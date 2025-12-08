@@ -160,6 +160,7 @@ The GUI will:
 
 ### CLI Version (Optional)
 The automation layer can also be run directly from the command line:
+
      ```
      python TestRunner.py <server_ip> <duration> <batch_size>
      ```
