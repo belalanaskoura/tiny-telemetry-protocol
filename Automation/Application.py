@@ -18,7 +18,6 @@ csv_path = os.path.join(base_path, "../Server/sensor_data.csv")
 test_runner_path = os.path.join(base_path, "TestRunner.py")
 
 
-
 # ------------------ Utility Functions ------------------
 def get_lan_ip():
     try:
@@ -90,11 +89,19 @@ def update_batch_recommendation(event=None):
     batch_entry.insert(0, str(recommended))
 
 
+# ------------------ Test Switching Logic ------------------
+def force_custom_test():
+    # If currently baseline, switch to Custom and update UI
+    if test_type.get() != "Custom Test":
+        test_type.set("Custom Test")
+        on_test_type_change()
+
+
 # ------------------ Run Button Logic ------------------
 def run_test():
     ip = ip_entry.get().strip() or get_lan_ip()
 
-    # BASELINE TEST
+    # BASELINE TEST: fixed 60s, no batching
     if test_type.get() == "Baseline Test (60s, no batching)":
         duration = 60
         batch_size = 0
@@ -167,7 +174,7 @@ root.geometry("1000x700")
 # Title
 ctk.CTkLabel(
     root,
-    text="Tiny Telemetry Protocol",
+    text="Application – Tiny Telemetry Protocol",
     font=ctk.CTkFont(size=22, weight="bold")
 ).pack(pady=(20, 10))
 
@@ -180,6 +187,21 @@ controls_frame.pack(pady=10, fill="x")
 # Test Type Selector
 test_type = ctk.StringVar(value="Baseline Test (60s, no batching)")
 
+def on_test_type_change():
+    # When switching modes, just handle batching visibility and state.
+    # We do NOT disable the duration field so typing can auto-switch to custom.
+    if test_type.get() == "Baseline Test (60s, no batching)":
+        batching_enabled.set(False)
+        batch_frame.pack_forget()
+        batch_entry.delete(0, "end")
+        batch_entry.insert(0, "0")
+        # Optionally reset duration to 60 for clarity (fields are ignored in baseline anyway)
+        # duration_entry.delete(0, "end")
+        # duration_entry.insert(0, "60")
+    else:
+        # Custom Test: allow full control; nothing to auto-reset here
+        pass
+
 test_menu = ctk.CTkOptionMenu(
     controls_frame,
     values=["Baseline Test (60s, no batching)", "Custom Test"],
@@ -187,17 +209,6 @@ test_menu = ctk.CTkOptionMenu(
     command=lambda _: on_test_type_change()
 )
 test_menu.pack(pady=5)
-
-
-def on_test_type_change():
-    if test_type.get() == "Baseline Test (60s, no batching)":
-        duration_entry.configure(state="disabled")
-        batching_enabled.set(False)
-        batch_frame.pack_forget()
-        batch_entry.delete(0, "end")
-        batch_entry.insert(0, "0")
-    else:
-        duration_entry.configure(state="normal")
 
 
 # Server IP
@@ -216,16 +227,19 @@ ctk.CTkLabel(duration_frame, text="Run Duration (seconds):", font=ctk.CTkFont(si
 duration_entry = ctk.CTkEntry(duration_frame, width=100)
 duration_entry.insert(0, "60")
 duration_entry.grid(row=0, column=1, padx=5)
+
+# If user tries to type seconds while in Baseline → auto-switch to Custom
+duration_entry.bind("<KeyPress>", lambda e: force_custom_test())
 duration_entry.bind("<KeyRelease>", update_batch_recommendation)
 
 
-# Enable batching checkbox (Custom Test only)
+# Enable batching checkbox
 batching_enabled = ctk.BooleanVar(value=False)
 
 def toggle_batching():
+    # If user enables batching while in Baseline mode → switch to Custom automatically
     if test_type.get() != "Custom Test":
-        batching_enabled.set(False)
-        return
+        force_custom_test()
 
     if batching_enabled.get():
         batch_frame.pack(pady=5)
@@ -283,7 +297,7 @@ h_scroll.pack(fill="x", padx=20)
 log_box.insert("end", "Logs will appear here...\n")
 log_box.configure(state="disabled")
 
-# Initialize state
+# Initialize UI state
 on_test_type_change()
 
 root.mainloop()
