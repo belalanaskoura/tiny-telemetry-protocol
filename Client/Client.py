@@ -50,7 +50,7 @@ def construct_packet_with_checksum(device_id, seq_num, msg_type, payload=b"", ba
 # Send INIT packet
 init_packet, init_checksum = construct_packet_with_checksum(DEVICE_ID, seq_num, MSG_INIT)
 client_socket.sendto(init_packet, (SERVER_IP, SERVER_PORT))
-print(f"[INIT] sent to {SERVER_IP}:{SERVER_PORT}, checksum={init_checksum}", flush=True)
+print(f"[INIT] sent to {SERVER_IP}:{SERVER_PORT}", flush=True)
 
 start_time = time.time()
 
@@ -69,7 +69,7 @@ while time.time() - start_time < DURATION:
     packet, checksum = construct_packet_with_checksum(DEVICE_ID, seq_num, MSG_DATA, payload)
 
     client_socket.sendto(packet, (SERVER_IP, SERVER_PORT))
-    print(f"[DATA] sent seq={seq_num}, temp={temperature}, checksum={checksum}", flush=True)
+    print(f"[DATA] sent seq={seq_num}, temp={temperature}", flush=True)
 
     # Drift-corrected sleep: Ensures each packet is sent exactly 1 second after its predecessor
     next_time = start_time + seq_num * INTERVAL
