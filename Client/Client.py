@@ -12,14 +12,15 @@ def calculate_checksum(data):
 parser = argparse.ArgumentParser()
 parser.add_argument("--duration", type=int, default=60)
 parser.add_argument("--server_ip", type=str, default="127.0.0.1")
-parser.add_argument("--batch_size", type=int, default=1)  # OPTIONAL batching
+parser.add_argument("--batch_size", type=int, default=1)
 args = parser.parse_args()
 
 DURATION = args.duration
 SERVER_IP = args.server_ip
-BATCH_SIZE = max(1, args.batch_size)
 
-# Packet Header Definition
+# Enforce batch size <= duration
+BATCH_SIZE = max(1, min(args.batch_size, DURATION))
+
 HEADER_FORMAT = "!HBBIBHB"
 HEADER_SIZE = struct.calcsize(HEADER_FORMAT)
 
@@ -36,11 +37,7 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 seq_num = 0
 batch_buffer = []
 
-# Packet Construction
-def construct_packet_with_checksum(
-    device_id, seq_num, msg_type,
-    payload=b"", batch_flag=0, version=1
-):
+def construct_packet_with_checksum(device_id, seq_num, msg_type, payload=b"", batch_flag=0, version=1):
     timestamp = int(time.time())
 
     header = struct.pack(
@@ -71,10 +68,12 @@ def construct_packet_with_checksum(
 
     return header_with_checksum + payload
 
+
 # INIT
 init_packet = construct_packet_with_checksum(DEVICE_ID, seq_num, MSG_INIT)
 client_socket.sendto(init_packet, (SERVER_IP, SERVER_PORT))
 print(f"Connected to server {SERVER_IP}:{SERVER_PORT}")
+print(f"Batch size set to {BATCH_SIZE}")
 
 start_time = time.time()
 last_heartbeat_time = start_time
@@ -82,11 +81,9 @@ last_heartbeat_time = start_time
 while time.time() - start_time < DURATION:
     current_time = time.time()
 
-    # Generate reading
     temperature = round(random.uniform(20.0, 34.0), 1)
     batch_buffer.append(str(temperature))
 
-    # Send batch if full
     if len(batch_buffer) >= BATCH_SIZE:
         seq_num += 1
         payload = ",".join(batch_buffer).encode("utf-8")
@@ -103,13 +100,10 @@ while time.time() - start_time < DURATION:
         print(f"Sent batch of {len(batch_buffer)} readings (packet {seq_num})")
         batch_buffer.clear()
 
-    # Heartbeat
     if current_time - last_heartbeat_time >= HEARTBEAT_INTERVAL:
         seq_num += 1
         heartbeat = construct_packet_with_checksum(
-            DEVICE_ID,
-            seq_num,
-            MSG_HEARTBEAT
+            DEVICE_ID, seq_num, MSG_HEARTBEAT
         )
         client_socket.sendto(heartbeat, (SERVER_IP, SERVER_PORT))
         print("Heartbeat sent")
