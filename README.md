@@ -147,8 +147,8 @@ GUI Version (Recommended):
 1. Run the GUI:
    python Application.py
 2. Select a test type:
-- Baseline Test (60s, no batching)
-- Custom Test
+      - Baseline Test (60s, no batching)
+      - Custom Test
 3. Configure parameters if using Custom Test.
 4. Click **Run Test**.
 
