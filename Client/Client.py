@@ -6,159 +6,107 @@ import argparse
 
 # ------------------ Constants ------------------
 HEADER_FORMAT = "!HBBIBHB"
-HEADER_SIZE = struct.calcsize(HEADER_FORMAT)
-
 MSG_INIT = 1
 MSG_DATA = 2
 MSG_HEARTBEAT = 3
 
 DEVICE_ID = 1
 VERSION = 1
-HEARTBEAT_INTERVAL = 10
 SEND_INTERVAL = 1
-
+HEARTBEAT_INTERVAL = 5
 
 # ------------------ Checksum ------------------
 def calculate_checksum(data):
     return sum(data) % 65536
 
 
-# ------------------ Argument Parsing ------------------
+# ------------------ Args ------------------
 parser = argparse.ArgumentParser()
-parser.add_argument("--server_ip", type=str, required=True)
+parser.add_argument("--server_ip", required=True)
 parser.add_argument("--duration", type=int, default=60)
 parser.add_argument("--batch_size", type=int, default=0)
 args = parser.parse_args()
 
 SERVER_IP = args.server_ip
 DURATION = args.duration
-BATCH_SIZE = args.batch_size
+BATCH_SIZE = max(0, args.batch_size)
 
-if BATCH_SIZE < 0:
-    BATCH_SIZE = 0
-
-
-# ------------------ Socket Setup ------------------
+# ------------------ Socket ------------------
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-server_address = (SERVER_IP, 9999)
-
+server_addr = (SERVER_IP, 9999)
 print(f"Connected to server {SERVER_IP}:9999")
 
 # ------------------ INIT ------------------
 seq = 1
-init_header = struct.pack(
-    HEADER_FORMAT,
-    seq,
-    DEVICE_ID,
-    MSG_INIT,
-    int(time.time()),
-    0,
-    0,
-    VERSION
+init = struct.pack(
+    HEADER_FORMAT, seq, DEVICE_ID,
+    MSG_INIT, int(time.time()),
+    0, 0, VERSION
 )
-
-checksum = calculate_checksum(init_header)
-init_header = init_header[:9] + struct.pack("!H", checksum) + init_header[11:]
-
-sock.sendto(init_header, server_address)
-print("Initialization packet sent")
-
+checksum = calculate_checksum(init)
+init = init[:9] + struct.pack("!H", checksum) + init[11:]
+sock.sendto(init, server_addr)
 seq += 1
 
-
-# ------------------ Send Logic ------------------
 start_time = time.time()
 last_heartbeat = start_time
-
 batch_buffer = []
 
-
+# ------------------ Send Helpers ------------------
 def send_packet(payload):
     global seq
-
     header = struct.pack(
-        HEADER_FORMAT,
-        seq,
-        DEVICE_ID,
-        MSG_DATA,
-        int(time.time()),
-        0,
-        0,
-        VERSION
+        HEADER_FORMAT, seq, DEVICE_ID,
+        MSG_DATA, int(time.time()),
+        0, 0, VERSION
     )
-
     packet = header + payload.encode()
     checksum = calculate_checksum(packet)
     packet = packet[:9] + struct.pack("!H", checksum) + packet[11:]
-
-    sock.sendto(packet, server_address)
+    sock.sendto(packet, server_addr)
     seq += 1
 
-
-def send_single_reading():
-    temperature = round(random.uniform(20.0, 35.0), 1)
-    send_packet(str(temperature))
-    print(f"Sent temperature {temperature} (packet {seq - 1})")
-
+def send_single():
+    temp = round(random.uniform(20, 35), 1)
+    send_packet(str(temp))
+    print(f"Sent temperature {temp} (packet {seq-1})")
 
 def send_batch():
-    global batch_buffer
-
     payload = ",".join(batch_buffer)
     send_packet(payload)
-    print(f"Sent batch of {len(batch_buffer)} readings (packet {seq - 1})")
-    batch_buffer = []
+    print(f"Sent batch of {len(batch_buffer)} readings (packet {seq-1})")
+    batch_buffer.clear()
 
-
-# ------------------ Main Loop ------------------
-print(f"Batching {'Enabled' if BATCH_SIZE > 0 else 'Disabled'}")
-
+# ------------------ Loop ------------------
 while time.time() - start_time < DURATION:
 
-    current_time = time.time()
+    now = time.time()
 
-    # -------- HEARTBEAT --------
-    if current_time - last_heartbeat >= HEARTBEAT_INTERVAL:
-        heartbeat_header = struct.pack(
-            HEADER_FORMAT,
-            seq,
-            DEVICE_ID,
-            MSG_HEARTBEAT,
-            int(current_time),
-            0,
-            0,
-            VERSION
+    # ----- HEARTBEAT -----
+    if now - last_heartbeat >= HEARTBEAT_INTERVAL:
+        hb = struct.pack(
+            HEADER_FORMAT, seq, DEVICE_ID,
+            MSG_HEARTBEAT, int(now),
+            0, 0, VERSION
         )
-
-        checksum = calculate_checksum(heartbeat_header)
-        heartbeat_packet = (
-            heartbeat_header[:9] +
-            struct.pack("!H", checksum) +
-            heartbeat_header[11:]
-        )
-
-        sock.sendto(heartbeat_packet, server_address)
-        print("Heartbeat sent")
+        checksum = calculate_checksum(hb)
+        hb = hb[:9] + struct.pack("!H", checksum) + hb[11:]
+        sock.sendto(hb, server_addr)
+        print("Heartbeat sent", flush=True)
         seq += 1
-        last_heartbeat = current_time
+        last_heartbeat = now
 
-    # -------- DATA SENDING --------
+    # ----- DATA -----
     if BATCH_SIZE == 0:
-        # --- NO BATCHING MODE ---
-        send_single_reading()
-        time.sleep(SEND_INTERVAL)
-
+        send_single()
     else:
-        # --- BATCHING MODE ---
-        temperature = round(random.uniform(20.0, 35.0), 1)
-        batch_buffer.append(str(temperature))
-
+        batch_buffer.append(str(round(random.uniform(20, 35), 1)))
         if len(batch_buffer) >= BATCH_SIZE:
             send_batch()
 
-        time.sleep(SEND_INTERVAL)
+    time.sleep(SEND_INTERVAL)
 
-# -------- Flush remaining batch --------
+
 if BATCH_SIZE > 0 and batch_buffer:
     send_batch()
 
