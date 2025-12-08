@@ -14,7 +14,7 @@ if getattr(sys, 'frozen', False):
 else:
     base_path = os.path.dirname(os.path.abspath(__file__))
 
-csv_path = os.path.join(base_path, "../Server/sensor_data.csv")
+csv_path = os.path.join(base_path, "../sensor_data.csv")
 test_runner_path = os.path.join(base_path, "TestRunner.py")
 
 
