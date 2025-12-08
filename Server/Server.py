@@ -27,7 +27,6 @@ MSG_DATA = 2
 MSG_HEARTBEAT = 3
 
 
-
 # Metrics
 total_bytes = 0
 packets_received = 0
@@ -40,11 +39,15 @@ server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 server_socket.bind(("0.0.0.0", 9999))
 
+# IMPORTANT FIX: prevent recvfrom from blocking forever
+server_socket.settimeout(1.0)
+
 print("Server is running and listening for sensor data on port 9999...", flush=True)
 
 
 # Device State Tracking
 device_last_seq = {}
+device_last_seen = {}   # Track last heartbeat/data timestamp
 
 
 # CSV Setup
@@ -64,7 +67,13 @@ csv_writer.writerow([
 start_time = time.time()
 
 while time.time() - start_time < DURATION:
-    data, client_address = server_socket.recvfrom(1024)
+
+    # Receive packet (non-blocking via timeout)
+    try:
+        data, client_address = server_socket.recvfrom(1024)
+    except socket.timeout:
+        continue
+
     arrival_time = time.time()
     cpu_start_time = time.perf_counter()
 
@@ -91,6 +100,9 @@ while time.time() - start_time < DURATION:
             flush=True
         )
 
+    # Update last-seen time for device (heartbeat or data)
+    device_last_seen[device_id] = time.time()
+
     # Payload Handling
     payload = ""
     if len(data) > HEADER_SIZE:
@@ -107,6 +119,13 @@ while time.time() - start_time < DURATION:
             flush=True
         )
         device_last_seq[device_id] = seq
+
+    # HEARTBEAT Message
+    elif msg_type == MSG_HEARTBEAT:
+        print(
+            f"Heartbeat received from device {device_id}",
+            flush=True
+        )
 
     # DATA Message
     elif msg_type == MSG_DATA:
