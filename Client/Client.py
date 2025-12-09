@@ -93,7 +93,6 @@ while time.time() - start_time < DURATION:
         hb = hb[:9] + struct.pack("!H", checksum) + hb[11:]
         sock.sendto(hb, server_addr)
         print("Heartbeat sent", flush=True)
-        seq += 1
         last_heartbeat = now
 
     # ----- DATA -----
