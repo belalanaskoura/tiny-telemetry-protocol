@@ -4,42 +4,35 @@ Includes automated Linux NetEm testing for delay, jitter, and packet loss evalua
 
 ---
 
-# 📁 Project Structure
+### 📁 Project Structure
 
-```
-tiny-telemetry-protocol/
-│
-├── Automation/                 # GUI + experiment orchestrator
-│   ├── Application.py
-│   ├── TestRunner.py
-│
-├── Client/                     # Telemetry device client implementation
-│   └── Client.py
-│
-├── Server/                     # UDP telemetry server + CSV logger
-│   └── Server.py
-│
-├── Documents/                  # Project documentation (proposal + RFC)
-│   └── Reports/
-│       ├── Project Proposal.pdf
-│       └── RFC draft.pdf
-│
-├── Tests/                      # Automated network impairment tests
-│   ├── run_test.sh             # Run a single test (baseline/loss5/delay100)
-│   ├── run_all_tests.sh        # Run all predefined tests
-│   └── results/                # Test outputs (CSV, analysis, pcap)
-│       ├── baseline_<timestamp>/   # Baseline experiment output
-│       ├── loss5_<timestamp>/      # 5% loss experiment output
-│       └── delay100_<timestamp>/   # Delay + jitter experiment output
-│
-├── analyze_loss.py             # Automated delay/loss/gap analysis script
-├── requirements.txt            # Python dependencies
-├── sensor_data.csv             # Latest generated CSV from server
-└── README.md                   # This file
+- **Automation/** – GUI & experiment orchestrator  
+  - `Application.py`  
+  - `TestRunner.py`  
 
-```
+- **Client/** – Telemetry client implementation  
+  - `Client.py`
 
----
+- **Server/** – UDP telemetry server  
+  - `Server.py`
+
+- **Documents/** – Project documentation  
+  - **Reports/**  
+    - `Project Proposal.pdf`  
+    - `RFC draft.pdf`
+
+- **Tests/** – Automated NetEm tests  
+  - `run_test.sh`  
+  - `run_all_tests.sh`  
+  - **results/** (auto-generated folders)  
+    - `baseline_<timestamp>/`  
+    - `loss5_<timestamp>/`  
+    - `delay100_<timestamp>/`  
+
+- `analyze_loss.py` – Automated CSV analysis tool  
+- `requirements.txt` – Python dependencies  
+- `sensor_data.csv` – Latest CSV output  
+- `README.md` – Project documentation
 
 # 📘 System Overview
 
