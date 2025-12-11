@@ -91,24 +91,24 @@ def update_batch_recommendation(event=None):
 
 # ------------------ Test Switching Logic ------------------
 def force_custom_test():
-    # If currently baseline, switch to Custom and update UI
     if test_type.get() != "Custom Test":
         test_type.set("Custom Test")
         on_test_type_change()
 
 
-# ------------------ Run Button Logic ------------------
 def run_test():
     ip = ip_entry.get().strip() or get_lan_ip()
 
-    # BASELINE TEST: fixed 60s, no batching
+    # BASELINE TEST
     if test_type.get() == "Baseline Test (60s, no batching)":
         duration = 60
         batch_size = 0
+        num_clients = 1
 
     # CUSTOM TEST
     else:
         duration_text = duration_entry.get().strip()
+        clients_text = clients_entry.get().strip()
 
         if not duration_text.isdigit():
             messagebox.showerror("Invalid Input", "Run duration must be a number.")
@@ -116,15 +116,19 @@ def run_test():
 
         duration = int(duration_text)
 
+        if not clients_text.isdigit() or int(clients_text) < 1:
+            messagebox.showerror("Invalid Input", "Number of clients must be >= 1.")
+            return
+
+        num_clients = int(clients_text)
+
         if not batching_enabled.get():
             batch_size = 0
         else:
             batch_text = batch_entry.get().strip()
-
             if not batch_text.isdigit():
                 messagebox.showerror("Invalid Input", "Batch size must be a number.")
                 return
-
             batch_size = int(batch_text)
 
             if batch_size < 1 or batch_size > duration:
@@ -136,22 +140,26 @@ def run_test():
 
     threading.Thread(
         target=run_test_thread,
-        args=(ip, duration, batch_size),
+        args=(ip, duration, batch_size, num_clients),
         daemon=True
     ).start()
 
 
-def run_test_thread(ip, duration, batch_size):
+def run_test_thread(ip, duration, batch_size, num_clients):
     log_box.configure(state="normal")
     log_box.delete("1.0", "end")
     log_box.insert(
         "end",
         f"Starting test for {duration}s on server {ip} "
-        f"(Batching {'Enabled' if batch_size > 0 else 'Disabled'})...\n\n"
+        f"(Batch={batch_size}, Clients={num_clients})...\n\n"
     )
     log_box.configure(state="disabled")
 
-    cmd = [sys.executable, "-u", test_runner_path, ip, str(duration), str(batch_size)]
+    cmd = [
+        sys.executable, "-u", test_runner_path,
+        ip, str(duration), str(batch_size), str(num_clients)
+    ]
+
     process = subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
@@ -159,6 +167,7 @@ def run_test_thread(ip, duration, batch_size):
         text=True,
         bufsize=1
     )
+
     stream_process_output(process)
 
 
@@ -183,23 +192,16 @@ ctk.CTkLabel(
 controls_frame = ctk.CTkFrame(root)
 controls_frame.pack(pady=10, fill="x")
 
-
 # Test Type Selector
 test_type = ctk.StringVar(value="Baseline Test (60s, no batching)")
 
 def on_test_type_change():
-    # When switching modes, just handle batching visibility and state.
-    # We do NOT disable the duration field so typing can auto-switch to custom.
     if test_type.get() == "Baseline Test (60s, no batching)":
         batching_enabled.set(False)
         batch_frame.pack_forget()
         batch_entry.delete(0, "end")
         batch_entry.insert(0, "0")
-        # Optionally reset duration to 60 for clarity (fields are ignored in baseline anyway)
-        # duration_entry.delete(0, "end")
-        # duration_entry.insert(0, "60")
     else:
-        # Custom Test: allow full control; nothing to auto-reset here
         pass
 
 test_menu = ctk.CTkOptionMenu(
@@ -220,24 +222,31 @@ ip_entry.insert(0, get_lan_ip())
 ip_entry.grid(row=0, column=1, padx=5)
 
 
-# Duration
+# Run Duration
 duration_frame = ctk.CTkFrame(controls_frame)
 duration_frame.pack(pady=5)
-ctk.CTkLabel(duration_frame, text="Run Duration (seconds):", font=ctk.CTkFont(size=14)).grid(row=0, column=0, padx=5)
+ctk.CTkLabel(duration_frame, text="Duration (seconds):", font=ctk.CTkFont(size=14)).grid(row=0, column=0, padx=5)
 duration_entry = ctk.CTkEntry(duration_frame, width=100)
 duration_entry.insert(0, "60")
 duration_entry.grid(row=0, column=1, padx=5)
 
-# If user tries to type seconds while in Baseline → auto-switch to Custom
 duration_entry.bind("<KeyPress>", lambda e: force_custom_test())
 duration_entry.bind("<KeyRelease>", update_batch_recommendation)
+
+
+# Number of Clients
+clients_frame = ctk.CTkFrame(controls_frame)
+clients_frame.pack(pady=5)
+ctk.CTkLabel(clients_frame, text="Number of Clients:", font=ctk.CTkFont(size=14)).grid(row=0, column=0, padx=5)
+clients_entry = ctk.CTkEntry(clients_frame, width=100)
+clients_entry.insert(0, "1")
+clients_entry.grid(row=0, column=1, padx=5)
 
 
 # Enable batching checkbox
 batching_enabled = ctk.BooleanVar(value=False)
 
 def toggle_batching():
-    # If user enables batching while in Baseline mode → switch to Custom automatically
     if test_type.get() != "Custom Test":
         force_custom_test()
 
@@ -249,7 +258,6 @@ def toggle_batching():
         batch_entry.delete(0, "end")
         batch_entry.insert(0, "0")
 
-
 batch_check = ctk.CTkCheckBox(
     controls_frame,
     text="Enable Batching",
@@ -259,7 +267,7 @@ batch_check = ctk.CTkCheckBox(
 batch_check.pack(pady=5)
 
 
-# Batch size frame
+# Batch Size
 batch_frame = ctk.CTkFrame(controls_frame)
 ctk.CTkLabel(batch_frame, text="Batch Size:", font=ctk.CTkFont(size=14)).grid(row=0, column=0, padx=5)
 batch_entry = ctk.CTkEntry(batch_frame, width=100)
