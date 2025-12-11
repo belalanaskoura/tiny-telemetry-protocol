@@ -7,6 +7,7 @@ import socket
 import threading
 import pandas as pd
 from tabulate import tabulate
+import time
 
 # ------------------ Path Setup ------------------
 if getattr(sys, 'frozen', False):
@@ -39,31 +40,51 @@ def show_csv_content():
         if 'timestamp' in df.columns:
             df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
         if 'arrival_time' in df.columns:
-            df['arrival_time'] = pd.to_datetime(df['arrival_time'], unit='s')
+            try:
+                df['arrival_time'] = pd.to_datetime(df['arrival_time'], unit='s')
+            except Exception:
+                pass
 
         table = tabulate(df, headers='keys', tablefmt='grid', showindex=False)
         log_box.configure(state="normal")
         log_box.insert("end", "\n" + table + "\n")
         log_box.configure(state="disabled")
+
     except Exception as e:
         log_box.configure(state="normal")
         log_box.insert("end", f"\nError reading CSV: {e}\n")
         log_box.configure(state="disabled")
 
 
+# ------------------ Stream process output (NO METRICS) ------------------
 def stream_process_output(process):
+    """
+    Reads TestRunner output lines and prints them in the UI.
+    """
     def reader():
-        for line in iter(process.stdout.readline, ''):
-            if line:
-                log_box.configure(state="normal")
-                log_box.insert("end", line)
-                log_box.see("end")
-                log_box.configure(state="disabled")
-        process.wait()
+        for raw in iter(process.stdout.readline, ''):
+            if not raw:
+                if process.poll() is not None:
+                    break
+                time.sleep(0.01)
+                continue
+
+            clean = raw.rstrip("\n")
+
+            # Insert log line
+            log_box.configure(state="normal")
+            log_box.insert("end", clean + "\n")
+            log_box.see("end")
+            log_box.configure(state="disabled")
+
+        # Show completion
         log_box.configure(state="normal")
         log_box.insert("end", "\n--- Test Completed ---\n")
+        log_box.see("end")
         log_box.configure(state="disabled")
+
         show_csv_content()
+
     threading.Thread(target=reader, daemon=True).start()
 
 
@@ -77,16 +98,11 @@ def update_batch_recommendation(event=None):
         return
     if test_type.get() != "Custom Test":
         return
-
-    duration_text = duration_entry.get().strip()
-    if not duration_text.isdigit():
+    if not duration_entry.get().isdigit():
         return
-
-    duration = int(duration_text)
-    recommended = recommend_batch_size(duration)
-
-    batch_entry.delete(0, "end")
-    batch_entry.insert(0, str(recommended))
+    duration = int(duration_entry.get())
+    batch_entry.delete("0", "end")
+    batch_entry.insert(0, str(recommend_batch_size(duration)))
 
 
 # ------------------ Test Switching Logic ------------------
@@ -96,62 +112,48 @@ def force_custom_test():
         on_test_type_change()
 
 
+def on_test_type_change():
+    if test_type.get() == "Baseline Test (60s, no batching)":
+        batching_enabled.set(False)
+        batch_frame.pack_forget()
+        batch_entry.delete(0, "end")
+        batch_entry.insert(0, "0")
+
+
+# ------------------ Run Test ------------------
 def run_test():
     ip = ip_entry.get().strip() or get_lan_ip()
 
-    # BASELINE TEST
     if test_type.get() == "Baseline Test (60s, no batching)":
         duration = 60
         batch_size = 0
         num_clients = 1
-
-    # CUSTOM TEST
     else:
-        duration_text = duration_entry.get().strip()
-        clients_text = clients_entry.get().strip()
-
-        if not duration_text.isdigit():
-            messagebox.showerror("Invalid Input", "Run duration must be a number.")
+        if not duration_entry.get().isdigit():
+            messagebox.showerror("Invalid Input", "Duration must be a number.")
             return
 
-        duration = int(duration_text)
+        duration = int(duration_entry.get())
 
-        if not clients_text.isdigit() or int(clients_text) < 1:
-            messagebox.showerror("Invalid Input", "Number of clients must be >= 1.")
+        if not clients_entry.get().isdigit() or int(clients_entry.get()) < 1:
+            messagebox.showerror("Invalid Input", "Clients must be >= 1.")
             return
 
-        num_clients = int(clients_text)
+        num_clients = int(clients_entry.get())
 
-        if not batching_enabled.get():
-            batch_size = 0
+        if batching_enabled.get():
+            if not batch_entry.get().isdigit():
+                messagebox.showerror("Invalid Input", "Batch size must be numeric.")
+                return
+            batch_size = int(batch_entry.get())
         else:
-            batch_text = batch_entry.get().strip()
-            if not batch_text.isdigit():
-                messagebox.showerror("Invalid Input", "Batch size must be a number.")
-                return
-            batch_size = int(batch_text)
+            batch_size = 0
 
-            if batch_size < 1 or batch_size > duration:
-                messagebox.showerror(
-                    "Invalid Batch Size",
-                    "Batch size must be between 1 and run duration."
-                )
-                return
-
-    threading.Thread(
-        target=run_test_thread,
-        args=(ip, duration, batch_size, num_clients),
-        daemon=True
-    ).start()
-
-
-def run_test_thread(ip, duration, batch_size, num_clients):
     log_box.configure(state="normal")
     log_box.delete("1.0", "end")
     log_box.insert(
         "end",
-        f"Starting test for {duration}s on server {ip} "
-        f"(Batch={batch_size}, Clients={num_clients})...\n\n"
+        f"Running test: duration={duration}, batch={batch_size}, clients={num_clients}\n\n"
     )
     log_box.configure(state="disabled")
 
@@ -176,136 +178,114 @@ ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
 root = ctk.CTk()
-root.title("Tiny Telemetry Protocol v1")
-root.geometry("1000x700")
+root.title("Tiny Telemetry Protocol")
+root.geometry("1300x750")
 
 
 # Title
 ctk.CTkLabel(
     root,
-    text="Tiny Telemetry Protocol",
-    font=ctk.CTkFont(size=22, weight="bold")
-).pack(pady=(20, 10))
+    text="Tiny Telemetry Protocol v1",
+    font=ctk.CTkFont(size=24, weight="bold")
+).pack(pady=10)
 
 
 # ------------------ CONTROL PANEL ------------------
 controls_frame = ctk.CTkFrame(root)
-controls_frame.pack(pady=10, fill="x")
+controls_frame.pack(fill="x", pady=8)
 
-# Test Type Selector
+# Test Mode
 test_type = ctk.StringVar(value="Baseline Test (60s, no batching)")
 
-def on_test_type_change():
-    if test_type.get() == "Baseline Test (60s, no batching)":
-        batching_enabled.set(False)
-        batch_frame.pack_forget()
-        batch_entry.delete(0, "end")
-        batch_entry.insert(0, "0")
-    else:
-        pass
-
-test_menu = ctk.CTkOptionMenu(
+ctk.CTkOptionMenu(
     controls_frame,
     values=["Baseline Test (60s, no batching)", "Custom Test"],
     variable=test_type,
     command=lambda _: on_test_type_change()
-)
-test_menu.pack(pady=5)
-
+).pack(side="left", padx=10)
 
 # Server IP
 ip_frame = ctk.CTkFrame(controls_frame)
-ip_frame.pack(pady=5)
-ctk.CTkLabel(ip_frame, text="Server IP:", font=ctk.CTkFont(size=14)).grid(row=0, column=0, padx=5)
-ip_entry = ctk.CTkEntry(ip_frame, width=300)
+ip_frame.pack(side="left", padx=10)
+ctk.CTkLabel(ip_frame, text="Server IP:").grid(row=0, column=0, padx=5)
+ip_entry = ctk.CTkEntry(ip_frame, width=180)
 ip_entry.insert(0, get_lan_ip())
 ip_entry.grid(row=0, column=1, padx=5)
 
-
-# Run Duration
-duration_frame = ctk.CTkFrame(controls_frame)
-duration_frame.pack(pady=5)
-ctk.CTkLabel(duration_frame, text="Duration (seconds):", font=ctk.CTkFont(size=14)).grid(row=0, column=0, padx=5)
-duration_entry = ctk.CTkEntry(duration_frame, width=100)
+# Duration
+dur_frame = ctk.CTkFrame(controls_frame)
+dur_frame.pack(side="left", padx=10)
+ctk.CTkLabel(dur_frame, text="Duration:").grid(row=0, column=0, padx=5)
+duration_entry = ctk.CTkEntry(dur_frame, width=80)
 duration_entry.insert(0, "60")
 duration_entry.grid(row=0, column=1, padx=5)
-
 duration_entry.bind("<KeyPress>", lambda e: force_custom_test())
 duration_entry.bind("<KeyRelease>", update_batch_recommendation)
 
-
-# Number of Clients
-clients_frame = ctk.CTkFrame(controls_frame)
-clients_frame.pack(pady=5)
-ctk.CTkLabel(clients_frame, text="Number of Clients:", font=ctk.CTkFont(size=14)).grid(row=0, column=0, padx=5)
-clients_entry = ctk.CTkEntry(clients_frame, width=100)
+# Clients
+cl_frame = ctk.CTkFrame(controls_frame)
+cl_frame.pack(side="left", padx=10)
+ctk.CTkLabel(cl_frame, text="Clients:").grid(row=0, column=0, padx=5)
+clients_entry = ctk.CTkEntry(cl_frame, width=60)
 clients_entry.insert(0, "1")
 clients_entry.grid(row=0, column=1, padx=5)
 
-
-# Enable batching checkbox
+# Batching Checkbox
 batching_enabled = ctk.BooleanVar(value=False)
 
-def toggle_batching():
+def toggle_batch():
     if test_type.get() != "Custom Test":
         force_custom_test()
-
     if batching_enabled.get():
-        batch_frame.pack(pady=5)
+        batch_frame.pack(side="left", padx=10)
         update_batch_recommendation()
     else:
         batch_frame.pack_forget()
         batch_entry.delete(0, "end")
         batch_entry.insert(0, "0")
 
-batch_check = ctk.CTkCheckBox(
+ctk.CTkCheckBox(
     controls_frame,
     text="Enable Batching",
     variable=batching_enabled,
-    command=toggle_batching
-)
-batch_check.pack(pady=5)
-
+    command=toggle_batch
+).pack(side="left", padx=10)
 
 # Batch Size
 batch_frame = ctk.CTkFrame(controls_frame)
-ctk.CTkLabel(batch_frame, text="Batch Size:", font=ctk.CTkFont(size=14)).grid(row=0, column=0, padx=5)
-batch_entry = ctk.CTkEntry(batch_frame, width=100)
+ctk.CTkLabel(batch_frame, text="Batch Size:").grid(row=0, column=0, padx=5)
+batch_entry = ctk.CTkEntry(batch_frame, width=80)
 batch_entry.insert(0, "0")
 batch_entry.grid(row=0, column=1, padx=5)
 batch_frame.pack_forget()
 
-
-# Run button
-ctk.CTkButton(
-    root,
-    text="Run Test",
-    font=ctk.CTkFont(size=15, weight="bold"),
-    width=160,
-    height=40,
+# RUN TEST BUTTON
+run_button = ctk.CTkButton(
+    controls_frame,
+    text="RUN TEST",
+    font=ctk.CTkFont(size=18, weight="bold"),
+    width=220,
+    height=50,
+    corner_radius=12,
     command=run_test
-).pack(pady=15)
+)
+run_button.pack(side="right", padx=20)
 
 
-# ------------------ LOG TERMINAL ------------------
+# ------------------ LOG WINDOW (no metrics) ------------------
 log_frame = ctk.CTkFrame(root)
-log_frame.pack(padx=20, pady=10, fill="both", expand=True)
+log_frame.pack(fill="both", expand=True, padx=12, pady=12)
 
-log_box = ctk.CTkTextbox(log_frame, font=("Consolas", 11), wrap="none")
+log_box = ctk.CTkTextbox(log_frame, wrap="none", font=("Consolas", 11))
 log_box.pack(side="left", fill="both", expand=True)
 
-v_scroll = ctk.CTkScrollbar(log_frame, orientation="vertical", command=log_box.yview)
-log_box.configure(yscrollcommand=v_scroll.set)
-v_scroll.pack(side="right", fill="y")
-
-h_scroll = ctk.CTkScrollbar(root, orientation="horizontal", command=log_box.xview)
-log_box.configure(xscrollcommand=h_scroll.set)
-h_scroll.pack(fill="x", padx=20)
+scroll = ctk.CTkScrollbar(log_frame, orientation="vertical", command=log_box.yview)
+log_box.configure(yscrollcommand=scroll.set)
+scroll.pack(side="right", fill="y")
 
 log_box.insert("end", "Logs will appear here...\n")
 log_box.configure(state="disabled")
 
-# Initialize UI state
-on_test_type_change()
 
+# Start GUI
 root.mainloop()

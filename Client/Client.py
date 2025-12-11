@@ -46,7 +46,7 @@ sock.settimeout(INIT_TIMEOUT)
 print(f"Connecting to server {SERVER_IP}:9999", flush=True)
 
 # ------------------ INIT with 2-step Handshake ------------------
-seq = 1
+seq = 0
 retry = 0
 
 while retry < INIT_MAX_RETRIES:
