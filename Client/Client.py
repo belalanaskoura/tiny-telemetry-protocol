@@ -18,9 +18,11 @@ HEARTBEAT_INTERVAL = 5
 INIT_TIMEOUT = 2
 INIT_MAX_RETRIES = 5
 
+
 # ------------------ Checksum ------------------
 def calculate_checksum(data):
     return sum(data) % 65536
+
 
 # ------------------ Args ------------------
 parser = argparse.ArgumentParser()
@@ -35,14 +37,15 @@ DEVICE_ID = args.device_id
 DURATION = args.duration
 BATCH_SIZE = max(0, args.batch_size)
 
+
 # ------------------ Socket ------------------
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_addr = (SERVER_IP, 9999)
 sock.settimeout(INIT_TIMEOUT)
 
-print(f"Client {DEVICE_ID} connecting to server {SERVER_IP}:9999")
+print(f"Connecting to server {SERVER_IP}:9999", flush=True)
 
-# ------------------ INIT with Retransmission ------------------
+# ------------------ INIT with 2-step Handshake ------------------
 seq = 1
 retry = 0
 
@@ -55,28 +58,31 @@ while retry < INIT_MAX_RETRIES:
     checksum = calculate_checksum(init)
     init = init[:9] + struct.pack("!H", checksum) + init[11:]
 
-    print(f"Client {DEVICE_ID}: Sending INIT attempt {retry + 1}")
+    print(f"Sending INIT attempt {retry + 1}", flush=True)
     sock.sendto(init, server_addr)
 
     try:
-        ack, _ = sock.recvfrom(1024)
-        if ack == b"ACK_INIT":
-            print(f"Client {DEVICE_ID}: INIT acknowledged by server\n")
-            seq += 1
-            break
+        ack1, _ = sock.recvfrom(1024)
+
+        if ack1 == b"ACK_INIT":
+            print("ACK_INIT received", flush=True)
+
+            ack2, _ = sock.recvfrom(1024)
+
+            if ack2 == b"ACK_READY":
+                print("Server READY — starting data\n", flush=True)
+                seq += 1
+                break
+
     except socket.timeout:
-        print(f"Client {DEVICE_ID}: No ACK received, retrying...")
+        print("No ACK, retrying...", flush=True)
         retry += 1
 
 if retry == INIT_MAX_RETRIES:
-    print(f"Client {DEVICE_ID}: Failed INIT handshake. Exiting.")
+    print("INIT handshake FAILED — exiting.", flush=True)
     sock.close()
     sys.exit(1)
 
-# ------------------ Main Loop Setup ------------------
-start_time = time.time()
-last_heartbeat = start_time
-batch_buffer = []
 
 # ------------------ Send Helpers ------------------
 def send_packet(payload):
@@ -87,27 +93,39 @@ def send_packet(payload):
         0, 0, VERSION
     )
     packet = header + payload.encode()
-    checksum = calculate_checksum(packet)
 
+    checksum = calculate_checksum(packet)
     packet = packet[:9] + struct.pack("!H", checksum) + packet[11:]
+
     sock.sendto(packet, server_addr)
     seq += 1
+
 
 def send_single():
     temp = round(random.uniform(20, 35), 1)
     send_packet(str(temp))
-    print(f"Client {DEVICE_ID}: Sent temp {temp} (packet {seq-1})")
+    print(f"Sent temp {temp} (packet {seq-1})", flush=True)
 
-def send_batch():
-    payload = ",".join(batch_buffer)
+
+def send_batch(buffer):
+    payload = ",".join(buffer)
     send_packet(payload)
-    print(f"Client {DEVICE_ID}: Sent batch of {len(batch_buffer)} readings (packet {seq-1})")
-    batch_buffer.clear()
+    print(f"Sent batch of {len(buffer)} readings (packet {seq-1})", flush=True)
 
-# ------------------ Loop ------------------
-while time.time() - start_time < DURATION:
+
+# ------------------ Main Transmission Loop ------------------
+start = time.time()
+last_heartbeat = start
+buffer = []
+
+while True:
     now = time.time()
 
+    # Hard-stop before send
+    if now - start >= DURATION:
+        break
+
+    # Heartbeats
     if now - last_heartbeat >= HEARTBEAT_INTERVAL:
         hb = struct.pack(
             HEADER_FORMAT, seq, DEVICE_ID,
@@ -118,20 +136,28 @@ while time.time() - start_time < DURATION:
         hb = hb[:9] + struct.pack("!H", checksum) + hb[11:]
 
         sock.sendto(hb, server_addr)
-        print(f"Client {DEVICE_ID}: Heartbeat sent")
+        print("Heartbeat sent", flush=True)
         last_heartbeat = now
 
+    # Check duration again BEFORE sending data
+    if time.time() - start >= DURATION:
+        break
+
+    # DATA sending
     if BATCH_SIZE == 0:
         send_single()
     else:
-        batch_buffer.append(str(round(random.uniform(20, 35), 1)))
-        if len(batch_buffer) >= BATCH_SIZE:
-            send_batch()
+        temp = round(random.uniform(20, 35), 1)
+        buffer.append(str(temp))
+        if len(buffer) >= BATCH_SIZE:
+            send_batch(buffer)
+            buffer.clear()
 
     time.sleep(SEND_INTERVAL)
 
-if BATCH_SIZE > 0 and batch_buffer:
-    send_batch()
+# Final batch
+if BATCH_SIZE > 0 and buffer:
+    send_batch(buffer)
 
-print(f"Client {DEVICE_ID}: Finished sending data")
+print("Finished sending data", flush=True)
 sock.close()
