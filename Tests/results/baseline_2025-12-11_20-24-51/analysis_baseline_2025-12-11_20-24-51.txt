@@ -1,0 +1,28 @@
+
+================ PACKET STATS ================
+CSV File: /mnt/c/Users/belal/ASU/Year 3/Semester 5/Networks/Project/Code/tiny-telemetry-protocol/tests/results/baseline_2025-12-11_20-24-51/sensor_baseline_2025-12-11_20-24-51.csv
+-----------------------------------------------
+First seq          : 1
+Last seq           : 59
+Expected packets   : 59
+Received packets   : 59
+Total lost packets : 0
+Loss % (calculated): 0.00%
+===============================================
+
+========== GAP ANALYSIS (LOSS TEST) ==========
+No gaps detected.
+===============================================
+
+============== DELAY ANALYSIS =================
+Avg network delay     : 437.835 ms
+Min delay             : 437.333 ms
+Max delay             : 438.507 ms
+Delay jitter (stddev) : 0.289 ms
+
+Avg inter-arrival     : 1024.777 ms
+Inter-arrival jitter  : 184.316 ms
+
+Packet reordering?    : NO
+===============================================
+
