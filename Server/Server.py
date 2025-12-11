@@ -9,12 +9,10 @@ import os
 def calculate_checksum(data):
     return sum(data) % 65536
 
-
 # ------------------ Argument Parsing ------------------
 parser = argparse.ArgumentParser()
 parser.add_argument("--duration", type=int, default=60)
 args = parser.parse_args()
-
 DURATION = args.duration
 
 # ------------------ Packet Header ------------------
@@ -32,7 +30,7 @@ duplicate_count = 0
 sequence_gap_count = 0
 total_cpu_time = 0
 
-# ------------------ CSV Setup (PROJECT ROOT) ------------------
+# ------------------ CSV Setup ------------------
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 csv_path = os.path.join(PROJECT_ROOT, "sensor_data.csv")
 
@@ -59,12 +57,11 @@ print("Server is running and listening on port 9999...", flush=True)
 # ------------------ Device State ------------------
 device_last_seq = {}
 
-# ------------------ Main Loop ------------------
 start_time = time.time()
 
 while time.time() - start_time < DURATION:
     try:
-        data, _ = server_socket.recvfrom(1024)
+        data, addr = server_socket.recvfrom(1024)
     except socket.timeout:
         continue
 
@@ -87,13 +84,19 @@ while time.time() - start_time < DURATION:
     duplicate_flag = 0
     gap_flag = 0
 
+    # ------------------ INIT ------------------
     if msg_type == MSG_INIT:
-        print(f"New device connected. ID={device_id}, Version={version}",flush=True)
+        print(f"New device connected. ID={device_id}, Version={version}", flush=True)
         device_last_seq[device_id] = seq
 
+        # Send ACK back to client
+        server_socket.sendto(b"ACK_INIT", addr)
+
+    # ------------------ HEARTBEAT ------------------
     elif msg_type == MSG_HEARTBEAT:
         print(f"Heartbeat received from device {device_id}", flush=True)
 
+    # ------------------ DATA ------------------
     elif msg_type == MSG_DATA:
         if device_id in device_last_seq:
             last_seq = device_last_seq[device_id]
