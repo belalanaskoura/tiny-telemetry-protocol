@@ -1,0 +1,156 @@
+Starting server...
+[SERVER] Server is running and listening on port 9999...
+Starting 1 client(s)...
+1 clients started.
+
+[CLIENT 1] Connecting to server 127.0.0.1:9999
+[CLIENT 1] Sending INIT attempt 1
+[SERVER] New device connected. ID=1, Version=1
+[CLIENT 1] ACK_INIT received
+[CLIENT 1] Server READY — starting data
+[CLIENT 1] 
+[CLIENT 1] Sent temp 29.0 (packet 1)
+[SERVER] Data received | Packet 1 | Checksum Valid
+[CLIENT 1] Sent temp 25.6 (packet 2)
+[SERVER] Data received | Packet 2 | Checksum Valid
+[CLIENT 1] Sent temp 32.4 (packet 3)
+[SERVER] Data received | Packet 3 | Checksum Valid
+[CLIENT 1] Sent temp 23.7 (packet 4)
+[SERVER] Data received | Packet 4 | Checksum Valid
+[CLIENT 1] Sent temp 34.4 (packet 5)
+[SERVER] Data received | Packet 5 | Checksum Valid
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 23.4 (packet 6)
+[SERVER] Data received | Packet 6 | Checksum Valid
+[SERVER] Heartbeat received from device 1
+[CLIENT 1] Sent temp 28.1 (packet 7)
+[SERVER] Data received | Packet 7 | Checksum Valid
+[CLIENT 1] Sent temp 32.5 (packet 8)
+[SERVER] Data received | Packet 8 | Checksum Valid
+[CLIENT 1] Sent temp 26.9 (packet 9)
+[SERVER] Data received | Packet 9 | Checksum Valid
+[CLIENT 1] Sent temp 30.5 (packet 10)
+[SERVER] Data received | Packet 10 | Checksum Valid
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 26.9 (packet 11)
+[SERVER] Heartbeat received from device 1
+[SERVER] Data received | Packet 11 | Checksum Valid
+[CLIENT 1] Sent temp 30.4 (packet 12)
+[SERVER] Data received | Packet 12 | Checksum Valid
+[CLIENT 1] Sent temp 23.8 (packet 13)
+[SERVER] Data received | Packet 13 | Checksum Valid
+[CLIENT 1] Sent temp 23.7 (packet 14)
+[SERVER] Data received | Packet 14 | Checksum Valid
+[CLIENT 1] Sent temp 23.6 (packet 15)
+[SERVER] Data received | Packet 15 | Checksum Valid
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 27.5 (packet 16)
+[SERVER] Heartbeat received from device 1
+[SERVER] Data received | Packet 16 | Checksum Valid
+[CLIENT 1] Sent temp 27.0 (packet 17)
+[SERVER] Data received | Packet 17 | Checksum Valid
+[CLIENT 1] Sent temp 27.0 (packet 18)
+[SERVER] Data received | Packet 18 | Checksum Valid
+[CLIENT 1] Sent temp 27.4 (packet 19)
+[SERVER] Data received | Packet 19 | Checksum Valid
+[CLIENT 1] Sent temp 22.5 (packet 20)
+[SERVER] Data received | Packet 20 | Checksum Valid
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 31.9 (packet 21)
+[SERVER] Data received | Packet 21 | Checksum Valid
+[SERVER] Heartbeat received from device 1
+[CLIENT 1] Sent temp 27.6 (packet 22)
+[SERVER] Data received | Packet 22 | Checksum Valid
+[CLIENT 1] Sent temp 23.5 (packet 23)
+[SERVER] Data received | Packet 23 | Checksum Valid
+[CLIENT 1] Sent temp 22.8 (packet 24)
+[SERVER] Data received | Packet 24 | Checksum Valid
+[CLIENT 1] Sent temp 31.7 (packet 25)
+[SERVER] Data received | Packet 25 | Checksum Valid
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 30.7 (packet 26)
+[SERVER] Heartbeat received from device 1
+[SERVER] Data received | Packet 26 | Checksum Valid
+[CLIENT 1] Sent temp 27.5 (packet 27)
+[SERVER] Data received | Packet 27 | Checksum Valid
+[CLIENT 1] Sent temp 27.0 (packet 28)
+[SERVER] Data received | Packet 28 | Checksum Valid
+[CLIENT 1] Sent temp 27.9 (packet 29)
+[SERVER] Data received | Packet 29 | Checksum Valid
+[CLIENT 1] Sent temp 29.8 (packet 30)
+[SERVER] Data received | Packet 30 | Checksum Valid
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 33.2 (packet 31)
+[SERVER] Heartbeat received from device 1
+[SERVER] Data received | Packet 31 | Checksum Valid
+[CLIENT 1] Sent temp 21.7 (packet 32)
+[SERVER] Data received | Packet 32 | Checksum Valid
+[CLIENT 1] Sent temp 29.1 (packet 33)
+[SERVER] Data received | Packet 33 | Checksum Valid
+[CLIENT 1] Sent temp 28.5 (packet 34)
+[SERVER] Data received | Packet 34 | Checksum Valid
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 22.6 (packet 35)
+[SERVER] Heartbeat received from device 1
+[SERVER] Data received | Packet 35 | Checksum Valid
+[CLIENT 1] Sent temp 24.4 (packet 36)
+[SERVER] Data received | Packet 36 | Checksum Valid
+[CLIENT 1] Sent temp 33.0 (packet 37)
+[SERVER] Data received | Packet 37 | Checksum Valid
+[CLIENT 1] Sent temp 28.3 (packet 38)
+[SERVER] Data received | Packet 38 | Checksum Valid
+[CLIENT 1] Sent temp 31.8 (packet 39)
+[SERVER] Data received | Packet 39 | Checksum Valid
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 26.5 (packet 40)
+[SERVER] Heartbeat received from device 1
+[SERVER] Data received | Packet 40 | Checksum Valid
+[CLIENT 1] Sent temp 33.6 (packet 41)
+[SERVER] Data received | Packet 41 | Checksum Valid
+[CLIENT 1] Sent temp 29.3 (packet 42)
+[SERVER] Data received | Packet 42 | Checksum Valid
+[CLIENT 1] Sent temp 26.1 (packet 43)
+[SERVER] Data received | Packet 43 | Checksum Valid
+[CLIENT 1] Sent temp 25.1 (packet 44)
+[SERVER] Data received | Packet 44 | Checksum Valid
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 31.2 (packet 45)
+[SERVER] Data received | Packet 45 | Checksum Valid
+[SERVER] Heartbeat received from device 1
+[CLIENT 1] Sent temp 33.1 (packet 46)
+[SERVER] Data received | Packet 46 | Checksum Valid
+[CLIENT 1] Sent temp 32.9 (packet 47)
+[SERVER] Data received | Packet 47 | Checksum Valid
+[CLIENT 1] Sent temp 34.3 (packet 48)
+[SERVER] Data received | Packet 48 | Checksum Valid
+[CLIENT 1] Sent temp 29.5 (packet 49)
+[SERVER] Data received | Packet 49 | Checksum Valid
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 32.0 (packet 50)
+[SERVER] Heartbeat received from device 1
+[SERVER] Data received | Packet 50 | Checksum Valid
+[CLIENT 1] Sent temp 25.5 (packet 51)
+[SERVER] Data received | Packet 51 | Checksum Valid
+[CLIENT 1] Sent temp 27.1 (packet 52)
+[SERVER] Data received | Packet 52 | Checksum Valid
+[CLIENT 1] Sent temp 23.4 (packet 53)
+[SERVER] Data received | Packet 53 | Checksum Valid
+[CLIENT 1] Sent temp 25.9 (packet 54)
+[SERVER] Data received | Packet 54 | Checksum Valid
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 21.1 (packet 55)
+[SERVER] Data received | Packet 55 | Checksum Valid
+[SERVER] Heartbeat received from device 1
+[CLIENT 1] Sent temp 28.9 (packet 56)
+[SERVER] Data received | Packet 56 | Checksum Valid
+[CLIENT 1] Sent temp 34.8 (packet 57)
+[SERVER] Data received | Packet 57 | Checksum Valid
+[CLIENT 1] Sent temp 23.3 (packet 58)
+[SERVER] Data received | Packet 58 | Checksum Valid
+[CLIENT 1] Sent temp 25.4 (packet 59)
+[SERVER] 
+[SERVER] Server session ended.
+[CLIENT 1] Finished sending data
+
+Test completed.
+
