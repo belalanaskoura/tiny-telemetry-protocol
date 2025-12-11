@@ -161,12 +161,13 @@ The GUI will:
 ### CLI Version (Optional)
 The automation layer can also be run directly from the command line:
 
-     python TestRunner.py <server_ip> <duration> <batch_size>
+     python TestRunner.py <server_ip> <duration> <batch_size> <num_clients>
 
 Parameters:
 - `<server_ip>`: IP address of the server (LAN or localhost).
 - `<duration>`: Duration in seconds to run the simulation.
 - `<batch_size>`: Packets per batch (0 disables batching).
+- `<num_clients>`: Number of sensors that send data.
 
 ---
 
