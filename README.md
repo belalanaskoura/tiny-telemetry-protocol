@@ -24,7 +24,7 @@ Includes automated Linux NetEm testing for delay, jitter, and packet loss evalua
 - **Tests/** – Automated NetEm tests  
   - `run_test.sh`  
   - `run_all_tests.sh`  
-  - **results/** (auto-generated folders)  
+  - **results/** (auto-generated; each folder contains CSV, analysis, logs, pcap)  
     - `baseline_<timestamp>/`  
     - `loss5_<timestamp>/`  
     - `delay100_<timestamp>/`  
@@ -33,6 +33,8 @@ Includes automated Linux NetEm testing for delay, jitter, and packet loss evalua
 - `requirements.txt` – Python dependencies  
 - `sensor_data.csv` – Latest CSV output  
 - `README.md` – Project documentation
+
+---
 
 # 📘 System Overview
 
@@ -191,6 +193,14 @@ Each experiment is saved in:
 tests/results/<testname_timestamp>/
 ```
 
+Each experiment folder contains:
+
+- `sensor_<test>.csv` — Telemetry log  
+- `analysis_<test>.txt` — Automated delay/loss/jitter analysis  
+- `test_output.log` — Combined client/server logs  
+- `trace.pcap` — Packet capture for Wireshark  
+- `netem_settings.txt` — Exact NetEm impairment applied  
+
 ---
 
 # ⚠️ WSL2 Users — Important Note
@@ -268,7 +278,7 @@ Evaluates:
 - Inter-arrival delay  
 - Reordering behavior  
 
-WSL2 introduces an additional constant ~350ms delay, but jitter values remain accurate.
+WSL2 introduces an additional constant ~350ms delay, but jitter remains accurate.
 
 ---
 
@@ -346,6 +356,3 @@ Open in Wireshark to inspect:
 - Impairments are applied & removed automatically  
 - Batching increases payload size but reduces packet frequency  
 - Baseline test provides reference metrics for comparison  
-
----
-
