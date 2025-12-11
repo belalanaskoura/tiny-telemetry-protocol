@@ -1,0 +1,19 @@
+
+================ LOSS ANALYSIS ================
+CSV File: /mnt/c/Users/belal/ASU/Year 3/Semester 5/Networks/Project/Code/tiny-telemetry-protocol/tests/results/loss5_2025-12-11_20-04-02/sensor_loss5_2025-12-11_20-04-02.csv
+-----------------------------------------------
+First sequence number: 1
+Last sequence number : 59
+Expected packets     : 59
+Received packets     : 56
+Total lost packets   : 3
+Loss % (calculated)  : 5.08%
+===============================================
+
+Detected Sequence Gaps:
+  Gap after seq 25 → next received 27 | Lost 1 packets
+  Gap after seq 40 → next received 42 | Lost 1 packets
+  Gap after seq 44 → next received 46 | Lost 1 packets
+
+===============================================
+
