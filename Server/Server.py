@@ -10,11 +10,10 @@ def calculate_checksum(data):
     return sum(data) % 65536
 
 
-# ------------------ Argument Parsing ------------------
+# ------------------ Args ------------------
 parser = argparse.ArgumentParser()
 parser.add_argument("--duration", type=int, default=60)
 args = parser.parse_args()
-
 DURATION = args.duration
 
 # ------------------ Packet Header ------------------
@@ -32,7 +31,7 @@ duplicate_count = 0
 sequence_gap_count = 0
 total_cpu_time = 0
 
-# ------------------ CSV Setup (PROJECT ROOT) ------------------
+# ------------------ CSV Setup ------------------
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 csv_path = os.path.join(PROJECT_ROOT, "sensor_data.csv")
 
@@ -56,12 +55,11 @@ server_socket.settimeout(1.0)
 
 print("Server is running and listening on port 9999...", flush=True)
 
-# ------------------ Device State ------------------
 device_last_seq = {}
-
-# ------------------ Main Loop ------------------
 start_time = time.time()
 
+
+# ------------------ Main Loop ------------------
 while time.time() - start_time < DURATION:
     try:
         data, addr = server_socket.recvfrom(1024)
@@ -81,29 +79,36 @@ while time.time() - start_time < DURATION:
         HEADER_FORMAT, data[:HEADER_SIZE]
     )
 
-    data_wo_checksum = data[:9] + b"\x00\x00" + data[11:]
-    integrity = "Valid" if calculate_checksum(data_wo_checksum) == checksum else "Corrupted"
+    # Checksum validation
+    temp_data = data[:9] + b"\x00\x00" + data[11:]
+    integrity = calculate_checksum(temp_data) == checksum
 
     duplicate_flag = 0
     gap_flag = 0
 
+    # ------------------ INIT ------------------
     if msg_type == MSG_INIT:
-        print(f"New device connected. ID={device_id}, Version={version}",flush=True)
+        print(f"New device connected. ID={device_id}, Version={version}", flush=True)
         device_last_seq[device_id] = seq
 
-        # Send ACK for INIT
         server_socket.sendto(b"ACK_INIT", addr)
+        time.sleep(0.05)
+        server_socket.sendto(b"ACK_READY", addr)
+        continue
 
-    elif msg_type == MSG_HEARTBEAT:
+    # ------------------ HEARTBEAT ------------------
+    if msg_type == MSG_HEARTBEAT:
         print(f"Heartbeat received from device {device_id}", flush=True)
+        continue
 
-    elif msg_type == MSG_DATA:
+    # ------------------ DATA ------------------
+    if msg_type == MSG_DATA:
         if device_id in device_last_seq:
-            last_seq = device_last_seq[device_id]
-            if seq == last_seq:
+            last = device_last_seq[device_id]
+            if seq == last:
                 duplicate_flag = 1
                 duplicate_count += 1
-            elif seq > last_seq + 1:
+            elif seq > last + 1:
                 gap_flag = 1
                 sequence_gap_count += 1
 
@@ -112,30 +117,29 @@ while time.time() - start_time < DURATION:
         payload = data[HEADER_SIZE:].decode(errors="ignore")
         values = payload.split(",") if "," in payload else [payload]
 
-        for value in values:
+        for v in values:
             csv_writer.writerow([
                 device_id, seq, timestamp,
                 arrival_time, duplicate_flag,
-                gap_flag, value
+                gap_flag, v
             ])
         file.flush()
 
-        if len(values) > 1:
-            print(f"Batch of {len(values)} readings | Packet {seq} | Checksum {integrity}")
-        else:
-            print(f"Data received | Packet {seq} | Checksum {integrity}")
+        msg = "Batch of {} readings".format(len(values)) if len(values) > 1 else "Data received"
+        print(f"{msg} | Packet {seq} | Checksum {'Valid' if integrity else 'Corrupted'}", flush=True)
 
     total_cpu_time += time.perf_counter() - cpu_start
 
+
 # ------------------ Summary ------------------
-print("\nSession Summary")
-print("-" * 30)
-print(f"Total packets received: {packets_received}")
-print(f"Average packet size: {round(total_bytes / packets_received, 2)} bytes")
-print(f"Duplicate packet rate: {(duplicate_count / packets_received) * 100:.2f}%")
-print(f"Sequence gaps detected: {sequence_gap_count}")
-print(f"Average CPU time per packet: {(total_cpu_time / packets_received) * 1000:.4f} ms")
-print("Server session ended.")
+print("\nSession Summary", flush=True)
+print("-" * 30, flush=True)
+print(f"Total packets received: {packets_received}", flush=True)
+print(f"Average packet size: {round(total_bytes / packets_received, 2)} bytes", flush=True)
+print(f"Duplicate packet rate: {(duplicate_count / packets_received) * 100:.2f}%", flush=True)
+print(f"Sequence gaps detected: {sequence_gap_count}", flush=True)
+print(f"Average CPU time per packet: {(total_cpu_time / packets_received) * 1000:.4f} ms", flush=True)
+print("Server session ended.", flush=True)
 
 file.close()
 server_socket.close()
