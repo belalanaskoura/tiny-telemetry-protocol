@@ -120,7 +120,6 @@ while time.time() - start_time < DURATION:
         sock.sendto(hb, server_addr)
         print(f"Client {DEVICE_ID}: Heartbeat sent")
         last_heartbeat = now
-        seq += 1
 
     if BATCH_SIZE == 0:
         send_single()
