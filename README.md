@@ -19,7 +19,7 @@ Includes automated Linux NetEm testing for delay, jitter, and packet loss evalua
 - **Documents/** – Project documentation  
   - **Reports/**  
     - `Project Proposal.pdf`  
-    - `RFC draft.pdf`
+    - `RFC.pdf`
 
 - **Tests/** – Automated NetEm tests  
   - `run_test.sh`  
