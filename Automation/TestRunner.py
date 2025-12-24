@@ -17,7 +17,7 @@ def get_lan_ip():
         return "127.0.0.1"
 
 
-# ------------------ Thread-safe printing ------------------
+# Thread-safe printing 
 print_lock = threading.Lock()
 
 def safe_print(msg):
@@ -25,7 +25,7 @@ def safe_print(msg):
         print(msg, flush=True)
 
 
-# ------------------ Output streaming ------------------
+#  Output streaming from subprocesses
 def stream_process(proc, prefix):
     """
     Read process stdout line by line
@@ -41,7 +41,7 @@ def stream_process(proc, prefix):
             safe_print(f"{prefix} {clean}")
 
 
-# ------------------ Locate Client/Server ------------------
+#  Locate Client/Server 
 def find_file(filename, search_dir):
     for root, _, files in os.walk(search_dir):
         if filename in files:
@@ -49,7 +49,7 @@ def find_file(filename, search_dir):
     return None
 
 
-# ------------------ MAIN ------------------
+#  MAIN PROGRAM
 if len(sys.argv) < 5:
     print("Usage: python TestRunner.py <server_ip> <duration> <batch_size> <num_clients>")
     sys.exit(1)
@@ -71,7 +71,7 @@ if not server_path or not client_path:
     safe_print("ERROR: Could not find Server.py or Client.py!")
     sys.exit(1)
 
-# ------------------ Start Server ------------------
+#  Start Server 
 safe_print("Starting server...")
 server_proc = subprocess.Popen(
     [PYTHON, "-u", server_path, "--duration", str(DURATION)],
@@ -90,7 +90,7 @@ threading.Thread(
 
 time.sleep(0.4)
 
-# ------------------ Start Clients ------------------
+# Start Clients  
 safe_print(f"Starting {NUM_CLIENTS} client(s)...")
 client_procs = []
 
@@ -118,7 +118,7 @@ for cid in range(1, NUM_CLIENTS + 1):
 
 safe_print(f"{NUM_CLIENTS} clients started.\n")
 
-# ------------------ Wait for all processes ------------------
+#  Wait for all processes to finish
 for proc in client_procs:
     proc.wait()
 

@@ -2,16 +2,12 @@ import pandas as pd
 import sys
 import numpy as np
 
-# ---------------------------
 # HELPERS
-# ---------------------------
 def format_ms(seconds):
     return round(seconds * 1000, 3)
 
 
-# ---------------------------
 # 1. LOAD CSV
-# ---------------------------
 if len(sys.argv) < 2:
     print("Usage: python3 analyze_results.py <csv_file>")
     sys.exit(1)
@@ -26,9 +22,7 @@ if df.empty:
     print("CSV contains no data packets.")
     sys.exit(0)
 
-# ---------------------------
 # 2. BASIC SEQUENCE STATS
-# ---------------------------
 received = df["seq"].nunique()
 first_seq = df["seq"].min()
 last_seq = df["seq"].max()
@@ -36,20 +30,16 @@ expected = (last_seq - first_seq) + 1
 lost = expected - received
 loss_percent = (lost / expected) * 100
 
-print("\n================ PACKET STATS ================")
+print("\n PACKET STATS ")
 print(f"CSV File: {csv_file}")
-print("-----------------------------------------------")
 print(f"First seq          : {first_seq}")
 print(f"Last seq           : {last_seq}")
 print(f"Expected packets   : {expected}")
 print(f"Received packets   : {received}")
 print(f"Total lost packets : {lost}")
 print(f"Loss % (calculated): {loss_percent:.2f}%")
-print("===============================================\n")
 
-# ---------------------------
-# 3. GAP ANALYSIS (LOSS TEST)
-# ---------------------------
+# GAP ANALYSIS (LOSS TEST)
 df_sorted = df.sort_values("seq")
 seq_list = df_sorted["seq"].tolist()
 
@@ -61,17 +51,14 @@ for i in range(1, len(seq_list)):
     if diff > 1:
         gaps.append((prev, curr, diff - 1))
 
-print("========== GAP ANALYSIS (LOSS TEST) ==========")
+print(" GAP ANALYSIS (LOSS TEST) ")
 if not gaps:
     print("No gaps detected.")
 else:
     for g in gaps:
         print(f"Gap after seq {g[0]} → next {g[1]} | Lost {g[2]} packets")
-print("===============================================\n")
 
-# ---------------------------
-# 4. DELAY & JITTER ANALYSIS
-# ---------------------------
+# DELAY & JITTER ANALYSIS
 if "arrival_time" in df.columns and "timestamp" in df.columns:
     df["arrival_time"] = pd.to_numeric(df["arrival_time"], errors="coerce")
     df["timestamp"] = pd.to_numeric(df["timestamp"], errors="coerce")
@@ -96,7 +83,7 @@ if "arrival_time" in df.columns and "timestamp" in df.columns:
     arrival_order = df_sorted_by_arrival["seq"].tolist()
     packet_reordering = arrival_order != sorted(arrival_order)
 
-    print("============== DELAY ANALYSIS =================")
+    print(" DELAY ANALYSIS ")
     print(f"Avg network delay     : {format_ms(avg_delay)} ms")
     print(f"Min delay             : {format_ms(min_delay)} ms")
     print(f"Max delay             : {format_ms(max_delay)} ms")
@@ -106,6 +93,5 @@ if "arrival_time" in df.columns and "timestamp" in df.columns:
     print(f"Inter-arrival jitter  : {format_ms(std_inter)} ms")
     print("")
     print(f"Packet reordering?    : {'YES' if packet_reordering else 'NO'}")
-    print("===============================================\n")
 else:
     print("Arrival times not present — cannot compute delay analysis.")

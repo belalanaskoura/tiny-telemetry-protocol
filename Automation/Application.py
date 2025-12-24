@@ -9,7 +9,7 @@ import pandas as pd
 from tabulate import tabulate
 import time
 
-# ------------------ Path Setup ------------------
+# Path Setup 
 if getattr(sys, 'frozen', False):
     base_path = sys._MEIPASS
 else:
@@ -19,7 +19,7 @@ csv_path = os.path.join(base_path, "../sensor_data.csv")
 test_runner_path = os.path.join(base_path, "TestRunner.py")
 
 
-# ------------------ Utility Functions ------------------
+#  Utility Functions 
 def get_lan_ip():
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -56,7 +56,7 @@ def show_csv_content():
         log_box.configure(state="disabled")
 
 
-# ------------------ Stream process output (NO METRICS) ------------------
+#  Stream process output (NO METRICS)  
 def stream_process_output(process):
     """
     Reads TestRunner output lines and prints them in the UI.
@@ -88,7 +88,7 @@ def stream_process_output(process):
     threading.Thread(target=reader, daemon=True).start()
 
 
-# ------------------ Recommendation Logic ------------------
+#  Recommendation Logic  
 def recommend_batch_size(duration):
     return max(1, min(duration // 5, 10))
 
@@ -105,7 +105,7 @@ def update_batch_recommendation(event=None):
     batch_entry.insert(0, str(recommend_batch_size(duration)))
 
 
-# ------------------ Test Switching Logic ------------------
+#  Test Switching Logic  
 def force_custom_test():
     if test_type.get() != "Custom Test":
         test_type.set("Custom Test")
@@ -120,7 +120,7 @@ def on_test_type_change():
         batch_entry.insert(0, "0")
 
 
-# ------------------ Run Test ------------------
+#  Run Test  
 def run_test():
     ip = ip_entry.get().strip() or get_lan_ip()
 
@@ -173,7 +173,7 @@ def run_test():
     stream_process_output(process)
 
 
-# ------------------ GUI Setup ------------------
+#  GUI Setup  
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
@@ -190,7 +190,7 @@ ctk.CTkLabel(
 ).pack(pady=10)
 
 
-# ------------------ CONTROL PANEL ------------------
+#  CONTROL PANEL  
 controls_frame = ctk.CTkFrame(root)
 controls_frame.pack(fill="x", pady=8)
 
@@ -272,7 +272,7 @@ run_button = ctk.CTkButton(
 run_button.pack(side="right", padx=20)
 
 
-# ------------------ LOG WINDOW (no metrics) ------------------
+#  LOG WINDOW (no metrics)  
 log_frame = ctk.CTkFrame(root)
 log_frame.pack(fill="both", expand=True, padx=12, pady=12)
 

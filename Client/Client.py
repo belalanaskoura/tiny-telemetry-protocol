@@ -5,7 +5,7 @@ import random
 import argparse
 import sys
 
-# ------------------ Constants ------------------
+# Constants
 HEADER_FORMAT = "!HBBIBHB"
 MSG_INIT = 1
 MSG_DATA = 2
@@ -18,11 +18,11 @@ HEARTBEAT_INTERVAL = 5
 INIT_TIMEOUT = 2
 INIT_MAX_RETRIES = 5
 
-# ------------------ Checksum ------------------
+# Checksum Function
 def calculate_checksum(data):
     return sum(data) % 65536
 
-# ------------------ Args ------------------
+# Args   
 parser = argparse.ArgumentParser()
 parser.add_argument("--server_ip", required=True)
 parser.add_argument("--duration", type=int, default=60)
@@ -35,14 +35,14 @@ DEVICE_ID = args.device_id
 DURATION = args.duration
 BATCH_SIZE = max(0, args.batch_size)
 
-# ------------------ Socket ------------------
+# Socket Setup
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_addr = (SERVER_IP, 9999)
 sock.settimeout(INIT_TIMEOUT)
 
 print(f"Connecting to server {SERVER_IP}:9999", flush=True)
 
-# ------------------ Timestamp base ------------------
+# Timestamp base 
 # Instead of epoch milliseconds (too large),
 # we use milliseconds since program start (fits into uint32 safely)
 START_TIME = time.time()
@@ -50,7 +50,7 @@ START_TIME = time.time()
 def get_timestamp_ms():
     return int((time.time() - START_TIME) * 1000)
 
-# ------------------ INIT Handshake ------------------
+# INIT Handshake
 seq = 0
 retry = 0
 
@@ -88,7 +88,7 @@ if retry == INIT_MAX_RETRIES:
     sock.close()
     sys.exit(1)
 
-# ------------------ Send Helpers ------------------
+# Send Helpers
 def send_packet(payload):
     global seq
     timestamp_ms = get_timestamp_ms()
@@ -116,7 +116,7 @@ def send_batch(buffer):
     send_packet(payload)
     print(f"Sent batch of {len(buffer)} readings (packet {seq-1})", flush=True)
 
-# ------------------ Main Loop ------------------
+# Main Loop
 start = time.time()
 last_heartbeat = start
 buffer = []
