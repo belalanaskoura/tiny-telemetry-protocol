@@ -21,7 +21,7 @@ INIT_MAX_RETRIES = 5
 def calculate_checksum(data):
     return sum(data) % 65536
 
-# Args 
+# Arguments 
 parser = argparse.ArgumentParser()
 parser.add_argument("--server_ip", required=True)
 parser.add_argument("--duration", type=int, default=60)
