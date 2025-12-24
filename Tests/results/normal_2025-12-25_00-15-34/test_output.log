@@ -1,0 +1,26 @@
+Starting server...
+[SERVER] Server is running on port 9999...
+Starting 1 client(s)...
+1 clients started.
+
+[CLIENT 1] Connecting to server 127.0.0.1:9999 (interval=1s)
+[CLIENT 1] Sending INIT attempt 1
+[SERVER] INIT from device 1
+[CLIENT 1] Server READY — starting data
+[CLIENT 1] 
+[CLIENT 1] Sent temp 21.0 (packet 1)
+[SERVER] Data | Packet 1 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 31.0 (packet 2)
+[SERVER] Data | Packet 2 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 32.6 (packet 3)
+[SERVER] Data | Packet 3 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 22.5 (packet 4)
+[SERVER] Data | Packet 4 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 29.3 (packet 5)
+[SERVER] Data | Packet 5 | Readings 1 | Checksum OK
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 28.7 (packet 6)
+[SERVER] Heartbeat from device 1
+[SERVER] Data | Packet 6 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 24.7 (packet 7)
+[SERVER] Data | Packet 7 | Readings 1 | Checksum OK

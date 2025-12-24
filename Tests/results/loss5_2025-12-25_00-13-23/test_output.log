@@ -1,0 +1,157 @@
+Starting server...
+[SERVER] Server is running on port 9999...
+Starting 1 client(s)...
+1 clients started.
+
+[CLIENT 1] Connecting to server 127.0.0.1:9999 (interval=1s)
+[CLIENT 1] Sending INIT attempt 1
+[SERVER] INIT from device 1
+[SERVER] Data | Packet 1 | Readings 1 | Checksum OK
+[CLIENT 1] Server READY — starting data
+[CLIENT 1] 
+[CLIENT 1] Sent temp 30.7 (packet 1)
+[CLIENT 1] Sent temp 29.5 (packet 2)
+[SERVER] Data | Packet 2 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 23.2 (packet 3)
+[SERVER] Data | Packet 3 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 32.1 (packet 4)
+[SERVER] Data | Packet 4 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 25.8 (packet 5)
+[SERVER] Data | Packet 5 | Readings 1 | Checksum OK
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 31.7 (packet 6)
+[SERVER] Heartbeat from device 1
+[SERVER] Data | Packet 6 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 24.6 (packet 7)
+[SERVER] Data | Packet 7 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 27.1 (packet 8)
+[SERVER] Data | Packet 8 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 23.7 (packet 9)
+[SERVER] Data | Packet 9 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 26.7 (packet 10)
+[SERVER] Data | Packet 10 | Readings 1 | Checksum OK
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 23.4 (packet 11)
+[SERVER] Heartbeat from device 1
+[SERVER] Data | Packet 11 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 21.4 (packet 12)
+[SERVER] Data | Packet 12 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 21.0 (packet 13)
+[SERVER] Data | Packet 13 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 24.7 (packet 14)
+[SERVER] Data | Packet 14 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 32.5 (packet 15)
+[SERVER] Data | Packet 15 | Readings 1 | Checksum OK
+[CLIENT 1] Heartbeat sent
+[SERVER] Heartbeat from device 1
+[CLIENT 1] Sent temp 28.4 (packet 16)
+[SERVER] Data | Packet 16 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 32.4 (packet 17)
+[SERVER] Data | Packet 17 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 32.0 (packet 18)
+[SERVER] Data | Packet 18 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 22.9 (packet 19)
+[SERVER] Data | Packet 19 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 22.3 (packet 20)
+[SERVER] Data | Packet 20 | Readings 1 | Checksum OK
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 28.6 (packet 21)
+[SERVER] Heartbeat from device 1
+[SERVER] Data | Packet 21 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 34.0 (packet 22)
+[SERVER] Data | Packet 22 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 27.5 (packet 23)
+[SERVER] Data | Packet 23 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 31.1 (packet 24)
+[SERVER] Data | Packet 24 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 30.7 (packet 25)
+[SERVER] Data | Packet 25 | Readings 1 | Checksum OK
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 26.8 (packet 26)
+[SERVER] Heartbeat from device 1
+[SERVER] Data | Packet 26 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 20.2 (packet 27)
+[SERVER] Data | Packet 27 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 33.5 (packet 28)
+[SERVER] Data | Packet 28 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 25.3 (packet 29)
+[SERVER] Data | Packet 29 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 30.4 (packet 30)
+[SERVER] Data | Packet 30 | Readings 1 | Checksum OK
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 27.8 (packet 31)
+[SERVER] Heartbeat from device 1
+[SERVER] Data | Packet 31 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 31.4 (packet 32)
+[SERVER] Data | Packet 32 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 21.8 (packet 33)
+[SERVER] Data | Packet 33 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 34.4 (packet 34)
+[SERVER] Data | Packet 34 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 30.3 (packet 35)
+[SERVER] Data | Packet 35 | Readings 1 | Checksum OK
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 26.3 (packet 36)
+[SERVER] Heartbeat from device 1
+[SERVER] Data | Packet 36 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 29.5 (packet 37)
+[SERVER] Data | Packet 37 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 28.5 (packet 38)
+[SERVER] Data | Packet 38 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 23.4 (packet 39)
+[SERVER] Data | Packet 39 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 30.9 (packet 40)
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 23.9 (packet 41)
+[SERVER] Heartbeat from device 1
+[SERVER] Data | Packet 41 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 23.0 (packet 42)
+[SERVER] Data | Packet 42 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 23.5 (packet 43)
+[SERVER] Data | Packet 43 | Readings 1 | Checksum OK
+[SERVER] Data | Packet 44 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 34.7 (packet 44)
+[CLIENT 1] Sent temp 24.0 (packet 45)
+[SERVER] Data | Packet 45 | Readings 1 | Checksum OK
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 21.5 (packet 46)
+[SERVER] Heartbeat from device 1
+[SERVER] Data | Packet 46 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 27.8 (packet 47)
+[SERVER] Data | Packet 47 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 31.4 (packet 48)
+[SERVER] Data | Packet 48 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 26.9 (packet 49)
+[SERVER] Data | Packet 49 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 24.0 (packet 50)
+[SERVER] Data | Packet 50 | Readings 1 | Checksum OK
+[CLIENT 1] Heartbeat sent
+[SERVER] Heartbeat from device 1
+[SERVER] Data | Packet 51 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 27.7 (packet 51)
+[CLIENT 1] Sent temp 34.0 (packet 52)
+[SERVER] Data | Packet 52 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 33.0 (packet 53)
+[SERVER] Data | Packet 53 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 31.0 (packet 54)
+[CLIENT 1] Sent temp 22.0 (packet 55)
+[SERVER] Data | Packet 55 | Readings 1 | Checksum OK
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 22.4 (packet 56)
+[SERVER] Heartbeat from device 1
+[SERVER] Data | Packet 56 | Readings 1 | Checksum OK
+[CLIENT 1] Sent temp 20.2 (packet 57)
+[SERVER] Data | Packet 57 | Readings 1 | Checksum OK
+[CLIENT 1] Finished sending data
+[SERVER] 
+[SERVER]  Experiment Metrics
+[SERVER] Packets received: 55
+[SERVER] Total readings received: 55
+[SERVER] Bytes per report: 16.00
+[SERVER] Duplicate rate: 0.0000
+[SERVER] Sequence gaps detected: 2
+[SERVER] CPU ms per report: 0.1164
+[SERVER] Metrics written to /mnt/c/Users/belal/ASU/Year 3/Semester 5/Networks/Project/Code/tiny-telemetry-protocol/metrics.txt
+
+Test completed.
+

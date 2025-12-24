@@ -1,0 +1,21 @@
+
+ PACKET STATS 
+CSV File: /mnt/c/Users/belal/ASU/Year 3/Semester 5/Networks/Project/Code/tiny-telemetry-protocol/tests/results/normal_2025-12-25_00-09-48/sensor_normal_2025-12-25_00-09-48.csv
+First seq          : 1
+Last seq           : 58
+Expected packets   : 58
+Received packets   : 58
+Total lost packets : 0
+Loss % (calculated): 0.00%
+ GAP ANALYSIS (LOSS TEST) 
+No gaps detected.
+ DELAY ANALYSIS 
+Avg network delay     : 423.307 ms
+Min delay             : 422.832 ms
+Max delay             : 423.867 ms
+Delay jitter (stddev) : 0.282 ms
+
+Avg inter-arrival     : 1041.521 ms
+Inter-arrival jitter  : 310.635 ms
+
+Packet reordering?    : NO
