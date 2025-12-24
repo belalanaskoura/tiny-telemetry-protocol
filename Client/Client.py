@@ -5,52 +5,61 @@ import random
 import argparse
 import sys
 
-# Constants
+# Constants 
 HEADER_FORMAT = "!HBBIBHB"
 MSG_INIT = 1
 MSG_DATA = 2
 MSG_HEARTBEAT = 3
 
 VERSION = 1
-SEND_INTERVAL = 1
 HEARTBEAT_INTERVAL = 5
 
 INIT_TIMEOUT = 2
 INIT_MAX_RETRIES = 5
 
-# Checksum Function
+# Checksum 
 def calculate_checksum(data):
     return sum(data) % 65536
 
-# Args   
+# Args 
 parser = argparse.ArgumentParser()
 parser.add_argument("--server_ip", required=True)
 parser.add_argument("--duration", type=int, default=60)
 parser.add_argument("--batch_size", type=int, default=0)
 parser.add_argument("--device_id", type=int, default=1)
+parser.add_argument(
+    "--interval",
+    type=int,
+    default=1,
+    choices=[1, 5, 30],
+    help="Reporting interval in seconds"
+)
 args = parser.parse_args()
 
 SERVER_IP = args.server_ip
 DEVICE_ID = args.device_id
 DURATION = args.duration
 BATCH_SIZE = max(0, args.batch_size)
+SEND_INTERVAL = args.interval 
 
-# Socket Setup
+# Socket 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_addr = (SERVER_IP, 9999)
 sock.settimeout(INIT_TIMEOUT)
 
-print(f"Connecting to server {SERVER_IP}:9999", flush=True)
+print(
+    f"Connecting to server {SERVER_IP}:9999 "
+    f"(interval={SEND_INTERVAL}s)",
+    flush=True
+)
 
-# Timestamp base 
-# Instead of epoch milliseconds (too large),
-# we use milliseconds since program start (fits into uint32 safely)
+# Relative Timestamp 
 START_TIME = time.time()
 
 def get_timestamp_ms():
     return int((time.time() - START_TIME) * 1000)
 
-# INIT Handshake
+# INIT Handshake 
 seq = 0
 retry = 0
 
@@ -58,7 +67,8 @@ while retry < INIT_MAX_RETRIES:
     timestamp_ms = get_timestamp_ms()
 
     init = struct.pack(
-        HEADER_FORMAT, seq, DEVICE_ID,
+        HEADER_FORMAT,
+        seq, DEVICE_ID,
         MSG_INIT, timestamp_ms,
         0, 0, VERSION
     )
@@ -72,8 +82,6 @@ while retry < INIT_MAX_RETRIES:
     try:
         ack1, _ = sock.recvfrom(1024)
         if ack1 == b"ACK_INIT":
-            print("ACK_INIT received", flush=True)
-
             ack2, _ = sock.recvfrom(1024)
             if ack2 == b"ACK_READY":
                 print("Server READY — starting data\n", flush=True)
@@ -88,18 +96,19 @@ if retry == INIT_MAX_RETRIES:
     sock.close()
     sys.exit(1)
 
-# Send Helpers
+# Send Helpers 
 def send_packet(payload):
     global seq
     timestamp_ms = get_timestamp_ms()
 
     header = struct.pack(
-        HEADER_FORMAT, seq, DEVICE_ID,
+        HEADER_FORMAT,
+        seq, DEVICE_ID,
         MSG_DATA, timestamp_ms,
         0, 0, VERSION
     )
-    packet = header + payload.encode()
 
+    packet = header + payload.encode()
     checksum = calculate_checksum(packet)
     packet = packet[:9] + struct.pack("!H", checksum) + packet[11:]
 
@@ -116,22 +125,20 @@ def send_batch(buffer):
     send_packet(payload)
     print(f"Sent batch of {len(buffer)} readings (packet {seq-1})", flush=True)
 
-# Main Loop
+# Main Loop 
 start = time.time()
 last_heartbeat = start
 buffer = []
 
-while True:
+while time.time() - start < DURATION:
+
     now = time.time()
 
-    if now - start >= DURATION:
-        break
-
-    # Heartbeat
     if now - last_heartbeat >= HEARTBEAT_INTERVAL:
         timestamp_ms = get_timestamp_ms()
         hb = struct.pack(
-            HEADER_FORMAT, seq, DEVICE_ID,
+            HEADER_FORMAT,
+            seq, DEVICE_ID,
             MSG_HEARTBEAT, timestamp_ms,
             0, 0, VERSION
         )
@@ -142,10 +149,6 @@ while True:
         print("Heartbeat sent", flush=True)
         last_heartbeat = now
 
-    if time.time() - start >= DURATION:
-        break
-
-    # Data
     if BATCH_SIZE == 0:
         send_single()
     else:
@@ -157,7 +160,6 @@ while True:
 
     time.sleep(SEND_INTERVAL)
 
-# Final batch
 if BATCH_SIZE > 0 and buffer:
     send_batch(buffer)
 
