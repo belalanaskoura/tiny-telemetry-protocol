@@ -118,6 +118,11 @@ def on_test_type_change():
         batch_frame.pack_forget()
         batch_entry.delete(0, "end")
         batch_entry.insert(0, "0")
+        interval_var.set("1")
+        interval_menu.configure(state="disabled")
+    else:
+        interval_menu.configure(state="normal")
+
 
 
 #  Run Test  
@@ -128,6 +133,7 @@ def run_test():
         duration = 60
         batch_size = 0
         num_clients = 1
+        interval = 1
     else:
         if not duration_entry.get().isdigit():
             messagebox.showerror("Invalid Input", "Duration must be a number.")
@@ -140,6 +146,8 @@ def run_test():
             return
 
         num_clients = int(clients_entry.get())
+        interval = int(interval_var.get())
+        
 
         if batching_enabled.get():
             if not batch_entry.get().isdigit():
@@ -159,7 +167,8 @@ def run_test():
 
     cmd = [
         sys.executable, "-u", test_runner_path,
-        ip, str(duration), str(batch_size), str(num_clients)
+        ip, str(duration), str(batch_size), str(num_clients),
+        "--interval", str(interval)
     ]
 
     process = subprocess.Popen(
@@ -258,6 +267,22 @@ batch_entry = ctk.CTkEntry(batch_frame, width=80)
 batch_entry.insert(0, "0")
 batch_entry.grid(row=0, column=1, padx=5)
 batch_frame.pack_forget()
+
+# Reporting Interval
+interval_frame = ctk.CTkFrame(controls_frame)
+interval_frame.pack(side="left", padx=10)
+
+ctk.CTkLabel(interval_frame, text="Interval (s):").grid(row=0, column=0, padx=5)
+
+interval_var = ctk.StringVar(value="1")
+
+interval_menu = ctk.CTkOptionMenu(
+    interval_frame,
+    values=["1", "5", "30"],
+    variable=interval_var
+)
+interval_menu.grid(row=0, column=1, padx=5)
+
 
 # RUN TEST BUTTON
 run_button = ctk.CTkButton(
