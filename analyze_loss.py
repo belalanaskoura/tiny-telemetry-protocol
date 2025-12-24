@@ -81,7 +81,6 @@ if "arrival_time" in df.columns and "timestamp" in df.columns:
     # Detect out-of-order packets (should NOT happen unless delay > variation)
     df_sorted_by_arrival = df.sort_values("arrival_time")
     arrival_order = df_sorted_by_arrival["seq"].tolist()
-    packet_reordering = arrival_order != sorted(arrival_order)
 
     print(" DELAY ANALYSIS ")
     print(f"Avg network delay     : {format_ms(avg_delay)} ms")
@@ -92,6 +91,5 @@ if "arrival_time" in df.columns and "timestamp" in df.columns:
     print(f"Avg inter-arrival     : {format_ms(avg_inter)} ms")
     print(f"Inter-arrival jitter  : {format_ms(std_inter)} ms")
     print("")
-    print(f"Packet reordering?    : {'YES' if packet_reordering else 'NO'}")
 else:
     print("Arrival times not present — cannot compute delay analysis.")
