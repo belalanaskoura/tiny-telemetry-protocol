@@ -1,0 +1,5 @@
+bytes_per_report 16.0
+packets_received 2
+duplicate_rate 0.0
+sequence_gap_count 0
+cpu_ms_per_report 0.3356500528752804
