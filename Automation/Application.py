@@ -30,7 +30,6 @@ def get_lan_ip():
     except Exception:
         return "127.0.0.1"
 
-
 def show_csv_content():
     if not os.path.exists(csv_path):
         return
@@ -87,11 +86,9 @@ def stream_process_output(process):
 
     threading.Thread(target=reader, daemon=True).start()
 
-
 #  Recommendation Logic  
 def recommend_batch_size(duration):
     return max(1, min(duration // 5, 10))
-
 
 def update_batch_recommendation(event=None):
     if not batching_enabled.get():
@@ -104,13 +101,11 @@ def update_batch_recommendation(event=None):
     batch_entry.delete("0", "end")
     batch_entry.insert(0, str(recommend_batch_size(duration)))
 
-
 #  Test Switching Logic  
 def force_custom_test():
     if test_type.get() != "Custom Test":
         test_type.set("Custom Test")
         on_test_type_change()
-
 
 def on_test_type_change():
     if test_type.get() == "Baseline Test (60s, no batching)":
@@ -122,7 +117,6 @@ def on_test_type_change():
         interval_menu.configure(state="disabled")
     else:
         interval_menu.configure(state="normal")
-
 
 
 #  Run Test  
@@ -181,7 +175,6 @@ def run_test():
 
     stream_process_output(process)
 
-
 #  GUI Setup  
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -190,14 +183,12 @@ root = ctk.CTk()
 root.title("Tiny Telemetry Protocol")
 root.geometry("1300x750")
 
-
 # Title
 ctk.CTkLabel(
     root,
     text="Tiny Telemetry Protocol v1",
     font=ctk.CTkFont(size=24, weight="bold")
 ).pack(pady=10)
-
 
 #  CONTROL PANEL  
 controls_frame = ctk.CTkFrame(root)
@@ -296,7 +287,6 @@ run_button = ctk.CTkButton(
 )
 run_button.pack(side="right", padx=20)
 
-
 #  LOG WINDOW (no metrics)  
 log_frame = ctk.CTkFrame(root)
 log_frame.pack(fill="both", expand=True, padx=12, pady=12)
@@ -310,7 +300,6 @@ scroll.pack(side="right", fill="y")
 
 log_box.insert("end", "Logs will appear here...\n")
 log_box.configure(state="disabled")
-
 
 # Start GUI
 root.mainloop()
