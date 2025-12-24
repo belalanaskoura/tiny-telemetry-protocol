@@ -86,7 +86,7 @@ while time.time() - start_time < DURATION:
     if msg_type == MSG_INIT:
         device_last_seq[device_id] = seq
         server_socket.sendto(b"ACK_INIT", addr)
-        time.sleep(0.05)
+        time.sleep(0.5)
         server_socket.sendto(b"ACK_READY", addr)
         print(f"INIT from device {device_id}", flush=True)
         continue
