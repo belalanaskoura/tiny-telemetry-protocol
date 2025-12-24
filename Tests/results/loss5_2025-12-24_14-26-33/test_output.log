@@ -1,0 +1,17 @@
+Starting server...
+[SERVER] Server is running and listening on port 9999...
+Starting 1 client(s)...
+1 clients started.
+
+[CLIENT 1] Connecting to server 127.0.0.1:9999
+[CLIENT 1] Sending INIT attempt 1
+[SERVER] New device connected. ID=1, Version=1
+[CLIENT 1] ACK_INIT received
+[CLIENT 1] Server READY — starting data
+[CLIENT 1] 
+[CLIENT 1] Sent temp 27.9 (packet 1)
+[SERVER] Data received | Packet 1 | Checksum Valid
+[CLIENT 1] Sent temp 23.2 (packet 2)
+[SERVER] Data received | Packet 2 | Checksum Valid
+[CLIENT 1] Sent temp 31.3 (packet 3)
+[SERVER] Data received | Packet 3 | Checksum Valid

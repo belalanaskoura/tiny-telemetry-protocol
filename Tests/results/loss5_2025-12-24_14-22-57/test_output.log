@@ -1,0 +1,33 @@
+Starting server...
+[SERVER] Server is running and listening on port 9999...
+Starting 1 client(s)...
+1 clients started.
+
+[CLIENT 1] Connecting to server 127.0.0.1:9999
+[CLIENT 1] Sending INIT attempt 1
+[SERVER] New device connected. ID=1, Version=1
+[CLIENT 1] ACK_INIT received
+[CLIENT 1] Server READY — starting data
+[CLIENT 1] 
+[CLIENT 1] Sent temp 34.6 (packet 1)
+[SERVER] Data received | Packet 1 | Checksum Valid
+[CLIENT 1] Sent temp 25.9 (packet 2)
+[SERVER] Data received | Packet 2 | Checksum Valid
+[CLIENT 1] Sent temp 20.0 (packet 3)
+[SERVER] Data received | Packet 3 | Checksum Valid
+[CLIENT 1] Sent temp 25.1 (packet 4)
+[SERVER] Data received | Packet 4 | Checksum Valid
+[CLIENT 1] Sent temp 30.1 (packet 5)
+[SERVER] Data received | Packet 5 | Checksum Valid
+[CLIENT 1] Heartbeat sent
+[CLIENT 1] Sent temp 25.6 (packet 6)
+[SERVER] Heartbeat received from device 1
+[SERVER] Data received | Packet 6 | Checksum Valid
+[CLIENT 1] Sent temp 32.0 (packet 7)
+[SERVER] Data received | Packet 7 | Checksum Valid
+[CLIENT 1] Sent temp 30.1 (packet 8)
+[SERVER] Data received | Packet 8 | Checksum Valid
+[CLIENT 1] Sent temp 28.5 (packet 9)
+[SERVER] Data received | Packet 9 | Checksum Valid
+[CLIENT 1] Sent temp 21.8 (packet 10)
+[SERVER] Data received | Packet 10 | Checksum Valid
