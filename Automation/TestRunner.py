@@ -5,7 +5,7 @@ import time
 import os
 import socket
 
-# ------------------ Get LAN IP ------------------
+# Get LAN IP
 def get_lan_ip():
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
