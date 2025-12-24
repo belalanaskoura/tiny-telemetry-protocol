@@ -51,8 +51,14 @@ def find_file(filename, search_dir):
 
 #  MAIN PROGRAM
 if len(sys.argv) < 5:
-    print("Usage: python TestRunner.py <server_ip> <duration> <batch_size> <num_clients>")
+    print("Usage: python TestRunner.py <server_ip> <duration> <batch_size> <num_clients> [--interval N]")
     sys.exit(1)
+
+INTERVAL = 1
+if "--interval" in sys.argv:
+    idx = sys.argv.index("--interval")
+    INTERVAL = int(sys.argv[idx + 1])
+
 
 SERVER_IP = sys.argv[1]
 DURATION = int(sys.argv[2])
@@ -78,7 +84,7 @@ server_proc = subprocess.Popen(
     stdout=subprocess.PIPE,
     stderr=subprocess.STDOUT,
     text=True,
-    bufsize=1
+    bufsize=1,
 )
 
 # Start server log thread
@@ -101,7 +107,8 @@ for cid in range(1, NUM_CLIENTS + 1):
             "--server_ip", SERVER_IP,
             "--duration", str(DURATION),
             "--batch_size", str(BATCH_SIZE),
-            "--device_id", str(cid)
+            "--device_id", str(cid),
+            "--interval", str(INTERVAL)
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
