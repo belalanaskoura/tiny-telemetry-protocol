@@ -19,7 +19,7 @@ csv_path = os.path.join(base_path, "../sensor_data.csv")
 test_runner_path = os.path.join(base_path, "TestRunner.py")
 
 
-#  Utility Functions 
+# Utility Functions 
 def get_lan_ip():
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -54,12 +54,9 @@ def show_csv_content():
         log_box.insert("end", f"\nError reading CSV: {e}\n")
         log_box.configure(state="disabled")
 
-
-#  Stream process output (NO METRICS)  
+# Stream process output (NO METRICS)  
 def stream_process_output(process):
-    """
-    Reads TestRunner output lines and prints them in the UI.
-    """
+    # Reader Thread
     def reader():
         for raw in iter(process.stdout.readline, ''):
             if not raw:
@@ -86,7 +83,7 @@ def stream_process_output(process):
 
     threading.Thread(target=reader, daemon=True).start()
 
-#  Recommendation Logic  
+# Recommendation Logic  
 def recommend_batch_size(duration):
     return max(1, min(duration // 5, 10))
 
@@ -119,10 +116,9 @@ def on_test_type_change():
         interval_menu.configure(state="normal")
 
 
-#  Run Test  
+# Run Test  
 def run_test():
     ip = ip_entry.get().strip() or get_lan_ip()
-
     if test_type.get() == "Baseline Test (60s, no batching)":
         duration = 60
         batch_size = 0
@@ -175,7 +171,7 @@ def run_test():
 
     stream_process_output(process)
 
-#  GUI Setup  
+# GUI Setup  
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
@@ -190,7 +186,7 @@ ctk.CTkLabel(
     font=ctk.CTkFont(size=24, weight="bold")
 ).pack(pady=10)
 
-#  CONTROL PANEL  
+# Control Panel  
 controls_frame = ctk.CTkFrame(root)
 controls_frame.pack(fill="x", pady=8)
 
@@ -274,8 +270,7 @@ interval_menu = ctk.CTkOptionMenu(
 )
 interval_menu.grid(row=0, column=1, padx=5)
 
-
-# RUN TEST BUTTON
+# Run test button
 run_button = ctk.CTkButton(
     controls_frame,
     text="RUN TEST",
@@ -287,7 +282,7 @@ run_button = ctk.CTkButton(
 )
 run_button.pack(side="right", padx=20)
 
-#  LOG WINDOW (no metrics)  
+# Log Box 
 log_frame = ctk.CTkFrame(root)
 log_frame.pack(fill="both", expand=True, padx=12, pady=12)
 
